@@ -1,0 +1,24 @@
+# Dependencies
+node_modules/
+
+# Environment files
+.env
+
+# Build output
+dist/
+
+# Logs
+*.log
+combined.log
+error.log
+
+# IDE
+.idea/
+
+# Cache/session
+.session-cache.json
+.playwright-mcp/
+
+# OS
+.DS_Store
+Thumbs.db
