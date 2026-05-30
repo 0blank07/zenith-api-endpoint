@@ -1,4 +1,5 @@
 import { Player, Trait, Skill } from '../types/player';
+import { RENDERZ_DICTIONARY } from './renderzDictionary';
 
 /**
  * MAPPINGS & DICTIONARIES
@@ -50,10 +51,22 @@ export const SKILL_MOVES_DATABASE = [
   { name: 'Hocus Pocus', stars: 5 },
 ];
 
+const SKILL_MOVE_NAMES: Record<number, string> = {
+  13: 'Roulette',
+  1: 'Heel to Heel Flick',
+  4: 'Rainbow',
+  5: 'Lane Change',
+  12: 'Stepover',
+  2: 'Ball Roll',
+  44: 'Open Up Fake Shot',
+  3: 'Flip Flap',
+  52: 'Rainbow (Legacy)'
+};
+
 /**
  * CLEANING LOGIC
  */
-export function cleanName(name: string, id?: number, type?: 'club' | 'league' | 'nation' | 'program'): string {
+export function cleanName(name: string, id?: number, type?: 'club' | 'league' | 'nation' | 'program' | 'skill_move'): string {
   if (!name) return 'Unknown';
 
   // 1. Check Dictionaries First
@@ -61,13 +74,30 @@ export function cleanName(name: string, id?: number, type?: 'club' | 'league' | 
     if (type === 'nation' && NATIONS[id]) return NATIONS[id];
     if (type === 'league' && LEAGUES[id]) return LEAGUES[id];
     if (type === 'club' && CLUBS[id]) return CLUBS[id];
+    if (type === 'skill_move' && SKILL_MOVE_NAMES[id]) return SKILL_MOVE_NAMES[id];
+  }
+
+  // Check Master RenderZ Dictionary
+  if (RENDERZ_DICTIONARY[name]) {
+    return RENDERZ_DICTIONARY[name];
+  }
+
+  // Handle Skill Move IDs embedded in name strings
+  if (name.toLowerCase().includes('skillmove_name_') || name.toLowerCase().includes('skill_move_')) {
+    const moveId = parseInt(name.replace(/skillmove_name_|skill_move_/gi, ''));
+    if (!isNaN(moveId) && SKILL_MOVE_NAMES[moveId]) return SKILL_MOVE_NAMES[moveId];
+  }
+
+  // Fallback for raw IDs being passed as names
+  if (!isNaN(parseInt(name)) && SKILL_MOVE_NAMES[parseInt(name)]) {
+    return SKILL_MOVE_NAMES[parseInt(name)];
   }
   
   if (type === 'program' && PROGRAMS[name]) return PROGRAMS[name];
 
   // 2. Regex Cleaning (Strip Prefixes)
   return name
-    .replace(/^(TeamName_|LeagueName_|NationName_|PROGRAM_|NAME_SKILL_|trait_name_|skillmove_name_)/i, '')
+    .replace(/^(TeamName_|LeagueName_|NationName_|PROGRAM_|NAME_SKILL_|trait_name_|skillmove_name_|skill_move_)/i, '')
     .replace(/_/g, ' ')
     .trim();
 }
@@ -138,10 +168,14 @@ const TRAITS: Record<number, string> = {
   17: 'Technical Dribbler',
   20: 'Flair',
   22: 'Dives Into Tackles',
-  24: 'Team Player',
+  24: 'Team Player'
 };
 
 export function getTraitTitle(id: number, rawTitle: string): string {
+  // If the title contains "skillmove" or "skill_move", it's a move being shown as a trait
+  if (rawTitle.toLowerCase().includes('skillmove') || rawTitle.toLowerCase().includes('skill_move')) {
+    return cleanName(rawTitle);
+  }
   return TRAITS[id] || cleanName(rawTitle);
 }
 
@@ -163,12 +197,32 @@ export const SKILL_BOOSTS: Record<number, any> = {
   33070: { name: 'Dribbling', maxLevel: 3, boosts: ['Dribbling', 'Ball Control', 'Agility'], unlocks: {} },
   33080: { name: 'Awareness', maxLevel: 3, boosts: ['Interceptions', 'Marking', 'Awareness'], unlocks: {} },
   33090: { name: 'Physical', maxLevel: 3, boosts: ['Strength', 'Aggression', 'Stamina'], unlocks: {} },
-  // WING
+  // WIDE MIDFIELDER / WING
+  34010: { name: 'Wide Midfielder', maxLevel: 2, boosts: ['Crossing', 'Dribbling', 'Pace'], unlocks: {} },
   36010: { name: 'Winger', maxLevel: 2, boosts: ['Crossing', 'Acceleration', 'Sprint Speed'], unlocks: { 2: ['RM', 'LM'] } },
   36040: { name: 'Inverted Winger', maxLevel: 2, boosts: ['Agility', 'Dribbling', 'Finishing'], unlocks: { 2: ['RW', 'LW'] } },
   36050: { name: 'Dribbling', maxLevel: 3, boosts: ['Dribbling', 'Ball Control', 'Agility'], unlocks: {} },
   36060: { name: 'Passing', maxLevel: 3, boosts: ['Short Passing', 'Long Passing', 'Vision'], unlocks: {} },
   36070: { name: 'Shooting', maxLevel: 3, boosts: ['Shot Power', 'Long Shots', 'Volleys'], unlocks: {} },
+  // ADDITIONAL ATK / DEF
+  39010: { name: 'Scoring', maxLevel: 3, boosts: ['Finishing', 'Shot Power', 'Positioning'], unlocks: {} },
+  39013: { name: 'Defending', maxLevel: 3, boosts: ['Marking', 'Standing Tackle', 'Interceptions'], unlocks: {} },
+  // DEF
+  30010: { name: 'Centre Back', maxLevel: 2, boosts: ['Marking', 'Standing Tackle', 'Awareness'], unlocks: { 2: ['RB', 'LB'] } },
+  30020: { name: 'Defender', maxLevel: 2, requires: 'Centre Back Lvl 2', boosts: ['Sliding Tackle', 'Marking', 'Standing Tackle'], unlocks: {} },
+  30050: { name: 'Header', maxLevel: 3, requires: 'Defender Lvl 2', boosts: ['Heading Accuracy', 'Jumping', 'Strength'], unlocks: {} },
+  30060: { name: 'Physical', maxLevel: 3, requires: 'Defender Lvl 2', boosts: ['Strength', 'Aggression', 'Jumping'], unlocks: {} },
+  30070: { name: 'Passing', maxLevel: 3, requires: 'Defender Lvl 2', boosts: ['Short Passing', 'Long Passing', 'Vision'], unlocks: {} },
+  // FULLBACK
+  31010: { name: 'Fullback', maxLevel: 2, boosts: ['Pace', 'Defending', 'Dribbling'], unlocks: { 2: ['CB', 'RWB', 'LWB'] } },
+  31020: { name: 'Complete Fullback', maxLevel: 2, requires: 'Fullback Lvl 2', boosts: ['Pace', 'Passing', 'Defending'], unlocks: {} },
+  31050: { name: 'Physical', maxLevel: 3, requires: 'Complete Fullback Lvl 2', boosts: ['Strength', 'Aggression', 'Jumping'], unlocks: {} },
+  31060: { name: 'Dribbling', maxLevel: 3, requires: 'Complete Fullback Lvl 2', boosts: ['Dribbling', 'Ball Control', 'Agility'], unlocks: {} },
+  31070: { name: 'Crossing', maxLevel: 3, requires: 'Complete Fullback Lvl 2', boosts: ['Crossing', 'Long Passing', 'Vision'], unlocks: {} },
+  // GK
+  32010: { name: 'Goalkeeper', maxLevel: 2, boosts: ['GK Diving', 'GK Positioning', 'GK Reflexes'], unlocks: {} },
+  32020: { name: 'Shot Stopper', maxLevel: 3, requires: 'Goalkeeper Lvl 2', boosts: ['GK Reflexes', 'GK Diving', 'GK Handling'], unlocks: {} },
+  32030: { name: 'Sweeper Keeper', maxLevel: 3, requires: 'Goalkeeper Lvl 2', boosts: ['GK Positioning', 'GK Kicking', 'Acceleration'], unlocks: {} },
 };
 
 export function getSkillDetails(id: number, level: number = 1) {

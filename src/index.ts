@@ -198,7 +198,7 @@ function displayPlayerDetail(player: Player) {
 
   console.log(`\n[ SKILL MOVE REQUIREMENTS ]`);
   const moves = getSkillRequirements(player.skillMovesLevel);
-  console.log(`- PRIMARY:   ${cleanName(player.skillMoves?.title || 'Unknown')}`);
+  console.log(`- PRIMARY:   ${cleanName(player.skillMoves?.title || 'Unknown', player.skillMoves?.id, 'skill_move')}`);
   console.log(`- AVAILABLE: ${moves.available.map(m => m.name).join(', ')}`);
   console.log(`- LOCKED:    ${moves.locked.map(m => `${m.name} (${m.stars}★)`).join(', ') || 'None'}`);
 
