@@ -198,7 +198,8 @@ export function getTraitTitle(id: number, rawTitle: string): string {
 export const SKILL_BOOSTS = SKILL_TREE;
 
 export function getSkillDetails(id: number, level: number = 1) {
-  const data = SKILL_TREE[id];
+  const tree = SKILL_TREE as any;
+  const data = tree[id];
   if (!data) return null;
 
   if (level > data.maxLevel) return null;
@@ -212,8 +213,9 @@ export function getSkillDetails(id: number, level: number = 1) {
   
   let requiresStr = '';
   if (data.requirement) {
-    const parentSkill = SKILL_TREE[data.requirement.skillId];
-    const parentName = parentSkill ? cleanName(parentSkill.name) : `Skill ID ${data.requirement.skillId}`;
+    const parentId = data.requirement.skillId;
+    const parentSkill = tree[parentId];
+    const parentName = parentSkill ? cleanName(parentSkill.name) : `Skill ID ${parentId}`;
     requiresStr = `${parentName} Lvl ${data.requirement.level}`;
   }
 
@@ -226,7 +228,9 @@ export function getSkillDetails(id: number, level: number = 1) {
 }
 
 export function getSkillTitle(id: number, rawName: string, iconUrl?: string): string {
-  const resolvedName = SKILL_TREE[id]?.name || RENDERZ_DICTIONARY[rawName] || rawName;
+  const tree = SKILL_TREE as any;
+  const skillData = tree[id];
+  const resolvedName = skillData?.name || RENDERZ_DICTIONARY[rawName] || rawName;
   const cleaned = cleanName(resolvedName);
   
   // Final Fallback: Icon URL Trick

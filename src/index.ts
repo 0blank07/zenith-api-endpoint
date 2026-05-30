@@ -142,7 +142,8 @@ function displayPlayerDetail(player: Player) {
   }
 
   console.log(`\n===========================================================`);
-  console.log(`   DEEP DIVE: ${player.cardName.toUpperCase()} [OVR: ${player.rating}]`);
+  const displayName = player.cardName || player.commonName || `${player.firstName} ${player.lastName}` || 'Unknown';
+  console.log(`   DEEP DIVE: ${displayName.toUpperCase()} [OVR: ${player.rating}]`);
   console.log(`===========================================================`);
   
   console.log(`\n[ ASSETS & COLORS ]`);
@@ -211,7 +212,8 @@ function displayPlayerDetail(player: Player) {
       
       const skillData = SKILL_BOOSTS[sk.id];
       if (skillData) {
-        if (skillData.requires) console.log(`  Requirement: ${skillData.requires}`);
+        const baseDetails = getSkillDetails(sk.id, 1);
+        if (baseDetails?.requires) console.log(`  Requirement: ${baseDetails.requires}`);
         for (let lvl = 1; lvl <= 3; lvl++) {
           const details = getSkillDetails(sk.id, lvl);
           if (details) {
