@@ -1,5 +1,6 @@
 import { Player, Trait, Skill } from '../types/player';
 import { RENDERZ_DICTIONARY } from './renderzDictionary';
+import { SKILL_TREE } from './skillTree';
 
 /**
  * MAPPINGS & DICTIONARIES
@@ -34,6 +35,17 @@ const PROGRAMS: Record<string, string> = {
   'PROGRAM_HEROS8': 'Heroes',
   'PROGRAM_TOTY': 'TOTY',
   'PROGRAM_UCL': 'Champions League',
+};
+
+const STAT_NAMES: Record<string, string> = {
+  acc: 'Acceleration', spd: 'Sprint Speed', fin: 'Finishing', sho: 'Shot Power',
+  lsa: 'Long Shots', vol: 'Volleys', pen: 'Penalties', pos: 'Positioning',
+  spa: 'Short Passing', lpa: 'Long Passing', vis: 'Vision', cro: 'Crossing',
+  cur: 'Curve', frk: 'Free Kick', dri: 'Dribbling', agi: 'Agility', bal: 'Balance',
+  bac: 'Ball Control', rea: 'Reactions', mrk: 'Marking', stt: 'Standing Tackle',
+  slt: 'Sliding Tackle', hea: 'Heading', awr: 'Awareness', str: 'Strength',
+  agg: 'Aggression', jmp: 'Jumping', sta: 'Stamina',
+  gkd: 'Diving', han: 'Handling', gkk: 'Kicking', gkp: 'Positioning', ref: 'Reflexes'
 };
 
 /**
@@ -182,66 +194,39 @@ export function getTraitTitle(id: number, rawTitle: string): string {
 /**
  * SKILL PROGRESSION DATABASE (Hierarchy & Levels)
  */
-export const SKILL_BOOSTS: Record<number, any> = {
-  // ATK
-  37010: { name: 'Striker', maxLevel: 2, boosts: ['Finishing', 'Shot Power', 'Volley'], unlocks: { 2: ['CAM'] } },
-  37020: { name: 'Advanced Forward', maxLevel: 3, boosts: ['Acceleration', 'Sprint Speed', 'Agility'], unlocks: {} },
-  37050: { name: 'False Nine', maxLevel: 2, requires: 'Striker Lvl 2', boosts: ['Short Passing', 'Vision', 'Dribbling'], unlocks: { 2: ['CF'] } },
-  37060: { name: 'Dribbling', maxLevel: 3, requires: 'False Nine Lvl 2', boosts: ['Dribbling', 'Ball Control', 'Agility'], unlocks: {} },
-  37070: { name: 'Physical', maxLevel: 3, requires: 'False Nine Lvl 2', boosts: ['Strength', 'Aggression', 'Jumping'], unlocks: {} },
-  37080: { name: 'Header', maxLevel: 3, requires: 'False Nine Lvl 2', boosts: ['Heading Accuracy', 'Jumping', 'Strength'], unlocks: {} },
-  // MID
-  33010: { name: 'Central Midfielder', maxLevel: 2, boosts: ['Short Passing', 'Vision', 'Long Passing'], unlocks: { 2: ['CDM', 'CAM'] } },
-  33030: { name: 'Box To Box', maxLevel: 3, requires: 'Central Midfielder Lvl 2', boosts: ['Stamina', 'Short Passing', 'Interceptions'], unlocks: {} },
-  33060: { name: 'Playmaker', maxLevel: 2, boosts: ['Vision', 'Long Passing', 'Short Passing'], unlocks: {} },
-  33070: { name: 'Dribbling', maxLevel: 3, boosts: ['Dribbling', 'Ball Control', 'Agility'], unlocks: {} },
-  33080: { name: 'Awareness', maxLevel: 3, boosts: ['Interceptions', 'Marking', 'Awareness'], unlocks: {} },
-  33090: { name: 'Physical', maxLevel: 3, boosts: ['Strength', 'Aggression', 'Stamina'], unlocks: {} },
-  // WIDE MIDFIELDER / WING
-  34010: { name: 'Wide Midfielder', maxLevel: 2, boosts: ['Crossing', 'Dribbling', 'Pace'], unlocks: {} },
-  36010: { name: 'Winger', maxLevel: 2, boosts: ['Crossing', 'Acceleration', 'Sprint Speed'], unlocks: { 2: ['RM', 'LM'] } },
-  36040: { name: 'Inverted Winger', maxLevel: 2, boosts: ['Agility', 'Dribbling', 'Finishing'], unlocks: { 2: ['RW', 'LW'] } },
-  36050: { name: 'Dribbling', maxLevel: 3, boosts: ['Dribbling', 'Ball Control', 'Agility'], unlocks: {} },
-  36060: { name: 'Passing', maxLevel: 3, boosts: ['Short Passing', 'Long Passing', 'Vision'], unlocks: {} },
-  36070: { name: 'Shooting', maxLevel: 3, boosts: ['Shot Power', 'Long Shots', 'Volleys'], unlocks: {} },
-  // ADDITIONAL ATK / DEF
-  39010: { name: 'Scoring', maxLevel: 3, boosts: ['Finishing', 'Shot Power', 'Positioning'], unlocks: {} },
-  39013: { name: 'Defending', maxLevel: 3, boosts: ['Marking', 'Standing Tackle', 'Interceptions'], unlocks: {} },
-  // DEF
-  30010: { name: 'Centre Back', maxLevel: 2, boosts: ['Marking', 'Standing Tackle', 'Awareness'], unlocks: { 2: ['RB', 'LB'] } },
-  30020: { name: 'Defender', maxLevel: 2, requires: 'Centre Back Lvl 2', boosts: ['Sliding Tackle', 'Marking', 'Standing Tackle'], unlocks: {} },
-  30050: { name: 'Header', maxLevel: 3, requires: 'Defender Lvl 2', boosts: ['Heading Accuracy', 'Jumping', 'Strength'], unlocks: {} },
-  30060: { name: 'Physical', maxLevel: 3, requires: 'Defender Lvl 2', boosts: ['Strength', 'Aggression', 'Jumping'], unlocks: {} },
-  30070: { name: 'Passing', maxLevel: 3, requires: 'Defender Lvl 2', boosts: ['Short Passing', 'Long Passing', 'Vision'], unlocks: {} },
-  // FULLBACK
-  31010: { name: 'Fullback', maxLevel: 2, boosts: ['Pace', 'Defending', 'Dribbling'], unlocks: { 2: ['CB', 'RWB', 'LWB'] } },
-  31020: { name: 'Complete Fullback', maxLevel: 2, requires: 'Fullback Lvl 2', boosts: ['Pace', 'Passing', 'Defending'], unlocks: {} },
-  31050: { name: 'Physical', maxLevel: 3, requires: 'Complete Fullback Lvl 2', boosts: ['Strength', 'Aggression', 'Jumping'], unlocks: {} },
-  31060: { name: 'Dribbling', maxLevel: 3, requires: 'Complete Fullback Lvl 2', boosts: ['Dribbling', 'Ball Control', 'Agility'], unlocks: {} },
-  31070: { name: 'Crossing', maxLevel: 3, requires: 'Complete Fullback Lvl 2', boosts: ['Crossing', 'Long Passing', 'Vision'], unlocks: {} },
-  // GK
-  32010: { name: 'Goalkeeper', maxLevel: 2, boosts: ['GK Diving', 'GK Positioning', 'GK Reflexes'], unlocks: {} },
-  32020: { name: 'Shot Stopper', maxLevel: 3, requires: 'Goalkeeper Lvl 2', boosts: ['GK Reflexes', 'GK Diving', 'GK Handling'], unlocks: {} },
-  32030: { name: 'Sweeper Keeper', maxLevel: 3, requires: 'Goalkeeper Lvl 2', boosts: ['GK Positioning', 'GK Kicking', 'Acceleration'], unlocks: {} },
-};
+// Keep export for backward compatibility with index.ts
+export const SKILL_BOOSTS = SKILL_TREE;
 
 export function getSkillDetails(id: number, level: number = 1) {
-  const data = SKILL_BOOSTS[id];
+  const data = SKILL_TREE[id];
   if (!data) return null;
 
   if (level > data.maxLevel) return null;
 
-  const boostValue = level * 7;
   const unlocked = data.unlocks[level] || [];
+  const boostMap = data.boosts[level] || {};
+  
+  const formattedBoosts = Object.entries(boostMap).map(([stat, val]) => {
+    return `${STAT_NAMES[stat] || stat.toUpperCase()} +${val}`;
+  });
+  
+  let requiresStr = '';
+  if (data.requirement) {
+    const parentSkill = SKILL_TREE[data.requirement.skillId];
+    const parentName = parentSkill ? cleanName(parentSkill.name) : `Skill ID ${data.requirement.skillId}`;
+    requiresStr = `${parentName} Lvl ${data.requirement.level}`;
+  }
 
   return {
-    name: data.name,
-    boosts: data.boosts.map((b: string) => `${b} +${boostValue}`),
+    name: cleanName(data.name),
+    boosts: formattedBoosts,
     unlockedPositions: unlocked,
-    requires: data.requires
+    requires: requiresStr
   };
 }
 
 export function getSkillTitle(id: number, rawName: string): string {
-  return SKILL_BOOSTS[id]?.name || cleanName(rawName);
+  const resolvedName = SKILL_TREE[id]?.name || rawName;
+  return cleanName(resolvedName);
 }
+
