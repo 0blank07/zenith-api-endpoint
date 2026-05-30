@@ -13,6 +13,7 @@
     "rating": "ts-node src/index.ts rating",
     "export": "ts-node src/index.ts export",
     "update-dict": "ts-node src/scripts/updateDictionary.ts",
+    "update-tree": "ts-node src/scripts/extractSkillTree.ts",
     "lint": "eslint . --ext .ts"
   },
   "keywords": [
