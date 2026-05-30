@@ -1,3 +1,4 @@
+// Auto-generated mapping file. Do not edit manually.
 export const RENDERZ_DICTIONARY: Record<string, string> = {
   "NAME_SKILL_10010": "Shooting",
   "NAME_SKILL_10011": "Shooting",
@@ -116,7 +117,7 @@ export const RENDERZ_DICTIONARY: Record<string, string> = {
   "NAME_SKILL_31040": "Falseback",
   "NAME_SKILL_31050": "Physical",
   "NAME_SKILL_31060": "NOT_FOUND_STRING_FOR_$kt",
-  "NAME_SKILL_31070": "Crossing",
+  "NAME_SKILL_31070": "https://assads.adsboosters.xyz/Pixel.gif",
   "NAME_SKILL_32010": "Defensive Midfielder",
   "NAME_SKILL_32020": "Holding",
   "NAME_SKILL_32030": "Box-To-Box",
