@@ -71,12 +71,21 @@ async function updateDictionary() {
     }
 
     // 4. Merge with existing dictionary
+    const currentKeys = Object.keys(RENDERZ_DICTIONARY).length;
     const merged = { ...RENDERZ_DICTIONARY };
     
     for (const [key, val] of Object.entries(extracted)) {
-        if (!merged[key] || merged[key] !== val) {
+        if (!val.startsWith('NOT_FOUND_') && (!merged[key] || merged[key] !== val)) {
             merged[key] = val;
             newItemsCount++;
+        }
+    }
+
+    // Also remove any existing NOT_FOUND_ from merged
+    for (const key of Object.keys(merged)) {
+        if (merged[key].startsWith('NOT_FOUND_')) {
+            delete merged[key];
+            newItemsCount++; // Just to trigger a rewrite
         }
     }
 
