@@ -112,7 +112,6 @@ export const RENDERZ_DICTIONARY: Record<string, string> = {
   "NAME_SKILL_31030": "Wingback",
   "NAME_SKILL_31040": "Falseback",
   "NAME_SKILL_31050": "Physical",
-  "NAME_SKILL_31070": "https://assads.adsboosters.xyz/Pixel.gif",
   "NAME_SKILL_32010": "Defensive Midfielder",
   "NAME_SKILL_32020": "Holding",
   "NAME_SKILL_32030": "Box-To-Box",
@@ -165,10 +164,8 @@ export const RENDERZ_DICTIONARY: Record<string, string> = {
   "NAME_SKILL_38030": "Sweeper Keeper",
   "NAME_SKILL_38050": "GK Rush",
   "NAME_SKILL_38060": "Highballs",
-  "NAME_SKILL_39010": "SCORING",
   "NAME_SKILL_39011": "PASSING",
   "NAME_SKILL_39012": "DRIBBLING",
-  "NAME_SKILL_39013": "DEFENDING",
   "NAME_SKILL_39014": "PHYSICAL",
   "NAME_SKILL_39020": "GK KICKING",
   "NAME_SKILL_39021": "GK BALL-PLAYING",
@@ -297,5 +294,9 @@ export const RENDERZ_DICTIONARY: Record<string, string> = {
   "skillmove_name_78": "Lane Change",
   "skillmove_name_80": "Open Up Fake Shot",
   "skillmove_name_82": "Drag Back Spin",
-  "skillmove_name_84": "Knock On"
+  "skillmove_name_84": "Knock On",
+  "NAME_SKILL_38040": "GK Passing",
+  "NAME_SKILL_34010": "Wide Midfielder",
+  "NAME_SKILL_39010": "Scoring",
+  "NAME_SKILL_39013": "Defending"
 };

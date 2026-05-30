@@ -1,6 +1,7 @@
 {
   "name": "renderz-fc-mobile-api",
   "version": "1.0.0",
+  "type": "commonjs",
   "description": "Production-ready FC Mobile player data extractor and API wrapper",
   "main": "dist/index.js",
   "scripts": {

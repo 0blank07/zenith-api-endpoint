@@ -5899,7 +5899,7 @@ export const SKILL_TREE: Record<number, any> = {
   },
   "31070": {
     "id": 31070,
-    "name": "https://assads.adsboosters.xyz/Pixel.gif",
+    "name": "Crossing",
     "maxLevel": 1,
     "requirement": {
       "skillId": 31020,

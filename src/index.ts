@@ -205,7 +205,7 @@ function displayPlayerDetail(player: Player) {
   console.log(`\n[ SKILL PROGRESSION TREE ]`);
   if (player.skillStyleSkills && player.skillStyleSkills.length > 0) {
     player.skillStyleSkills.forEach((sk) => {
-      const title = getSkillTitle(sk.id, sk.name);
+      const title = getSkillTitle(sk.id, sk.name, sk.image);
       console.log(`\n> SKILL: ${title}`);
       console.log(`  Icon: ${sk.image}`);
       

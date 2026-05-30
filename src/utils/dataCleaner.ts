@@ -225,8 +225,18 @@ export function getSkillDetails(id: number, level: number = 1) {
   };
 }
 
-export function getSkillTitle(id: number, rawName: string): string {
-  const resolvedName = SKILL_TREE[id]?.name || rawName;
-  return cleanName(resolvedName);
+export function getSkillTitle(id: number, rawName: string, iconUrl?: string): string {
+  const resolvedName = SKILL_TREE[id]?.name || RENDERZ_DICTIONARY[rawName] || rawName;
+  const cleaned = cleanName(resolvedName);
+  
+  // Final Fallback: Icon URL Trick
+  if ((cleaned === rawName || !isNaN(parseInt(cleaned))) && iconUrl) {
+    const urlMatch = iconUrl.match(/skill_S10_([A-Z_]+)_\d+/i) || iconUrl.match(/skill_([A-Z_]+)_\d+/i);
+    if (urlMatch) {
+        return urlMatch[1].replace(/_/g, ' ').split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ');
+    }
+  }
+  
+  return cleaned;
 }
 
