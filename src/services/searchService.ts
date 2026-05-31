@@ -184,86 +184,88 @@ export class SearchService {
         chromium.use(stealthPlugin());
 
         const browser = await chromium.launch({ headless: process.env.HEADLESS !== 'false' });
-        // Disable cache to force elasticsearch requests on every page navigation
-        const context = await browser.newContext({ offline: false });
-        const page = await context.newPage();
+        const page = await browser.newPage();
 
         try {
-          while (players.length < targetSize) {
-            logger.info(`SSR Loop: Fetching Page ${currentPage} (Collected: ${players.length}/${targetSize})`);
-            
-            let url = `${CONSTANTS.BASE_URL}/24/players?page=${currentPage}&`;
-            const params = [];
-            if (options.name) params.push(`q=${encodeURIComponent(options.name)}`);
-            if (options.sortBy) params.push(`sortBy=${options.sortBy}`);
-            if (options.sortOrder) params.push(`sortOrder=${options.sortOrder}`);
-            if (options.minRating) params.push(`minRating=${options.minRating}`);
-            if (options.maxRating) params.push(`maxRating=${options.maxRating}`);
-            url += params.join('&');
-
-            let pagePlayers: Player[] = [];
-            
-            const interceptor = async (response: any) => {
-              if (response.url().includes('elasticsearch')) {
-                try {
-                  const text = await response.text();
-                  const json = JSON.parse(text);
-                  if (json.players && json.players.length > 0) {
-                    pagePlayers = json.players;
-                    logger.info(`Page ${currentPage}: Caught ${pagePlayers.length} players from network.`);
-                  }
-                } catch (e) {}
+          // Initialize first page to capture security tokens
+          logger.info(`SSR Loop: Initializing session on Page 1...`);
+          const initialUrl = `${CONSTANTS.BASE_URL}/24/players?page=1`;
+          
+          let tokens: { token: string, fingerprint: string } | null = null;
+          
+          page.on('request', (req: any) => {
+            if (req.url().includes('elasticsearch') && !tokens) {
+              const h = req.headers();
+              if (h['x-secure-token'] && h['x-client-fingerprint']) {
+                tokens = {
+                  token: h['x-secure-token'],
+                  fingerprint: h['x-client-fingerprint']
+                };
               }
-            };
-            page.on('response', interceptor);
+            }
+          });
 
-            await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 90000 });
+          await page.goto(initialUrl, { waitUntil: 'domcontentloaded', timeout: 90000 });
+          
+          // Wait for tokens to be captured (up to 15s)
+          for (let i = 0; i < 30; i++) {
+            if (tokens) break;
             
-            // Wait for player cards to actually appear in the UI (triggers the API call)
-            await page.waitForSelector('a[href^="/24/player/"]', { timeout: 15000 }).catch(() => null);
-
-            // Wait for network response (up to 5s more)
-            for (let i = 0; i < 10; i++) {
-              if (pagePlayers.length > 0) break;
-              await new Promise(r => setTimeout(r, 500));
+            // If we are halfway through and still no tokens, try to force a request by triggering search
+            if (i === 15) {
+                logger.warn('Token capture slow, attempting to force a request via UI...');
+                await page.evaluate(() => {
+                    const searchBtn = Array.from(document.querySelectorAll('button, a')).find(el => el.textContent?.toLowerCase().includes('search'));
+                    if (searchBtn instanceof HTMLElement) searchBtn.click();
+                }).catch(() => null);
             }
             
-            page.off('response', interceptor);
+            await new Promise(r => setTimeout(r, 500));
+          }
 
-            // If network failed, try rehydration fallback on the same page
-            if (pagePlayers.length === 0) {
-              logger.warn(`Page ${currentPage}: Network capture failed. Trying SSR rehydration...`);
-              const ssrData = await page.evaluate(() => {
-                  const findData = () => {
-                      const scripts = Array.from(document.querySelectorAll('script')).map(s => s.textContent).filter(t => t && t.includes('__sveltekit_'));
-                      if (scripts.length === 0) return null;
-                      const text = scripts[0] || '';
-                      
-                      // Balanced bracket extraction for players array
-                      // In search results, it might be deep in the nodes.
-                      // Let's try to extract exactly what we need
-                      const match = text.match(/players:(\[.*?\]),count/);
-                      if (match) {
-                        try { return new Function(`return ${match[1]}`)(); } catch (e) {}
-                      }
-                      return null;
-                  };
-                  return findData();
+          if (!tokens) {
+            throw new Error('Failed to capture security tokens from SSR page after multiple attempts.');
+          }
+
+          logger.info('Tokens captured. Executing fast-fetch loop...');
+
+          // Execute manual fetch loop inside the browser context
+          const allResults = await page.evaluate(async (params: { targetSize: number, tokens: any, options: SearchOptions, endpoint: string }) => {
+            const results: any[] = [];
+            const { targetSize, tokens, options, endpoint } = params;
+            
+            for (let offset = 0; offset < targetSize; offset += 40) {
+              const res = await fetch(endpoint, {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'x-secure-token': tokens.token,
+                  'x-client-fingerprint': tokens.fingerprint
+                },
+                body: JSON.stringify({
+                  query: { bool: { must: [], should: [], must_not: [] } }, // Simple query for latest
+                  sort: [ { [options.sortBy || 'rating']: { order: options.sortOrder || 'desc' } }, { assetId: { order: 'desc' } } ],
+                  _source: [],
+                  from: offset,
+                  size: 40
+                })
               });
 
-              if (ssrData && Array.isArray(ssrData) && ssrData.length > 0) {
-                pagePlayers = ssrData;
-                logger.info(`Page ${currentPage}: Rehydrated ${pagePlayers.length} players from SSR block.`);
-              }
+              if (!res.ok) break;
+              const json = await res.json();
+              if (!json.players || json.players.length === 0) break;
+              
+              results.push(...json.players);
+              if (results.length >= targetSize) break;
+              
+              // Small throttle to stay under the radar
+              await new Promise(r => setTimeout(r, 200));
             }
+            return results;
+          }, { targetSize, tokens, options, endpoint: CONSTANTS.SEARCH_ENDPOINT });
 
-            if (pagePlayers.length === 0) {
-              logger.warn(`Page ${currentPage}: No players found. Ending loop.`);
-              break;
-            }
-
-            // Normalize and Add
-            const normalized = pagePlayers.map((p: any) => ({
+          if (allResults.length > 0) {
+            const normalized = allResults.map((p: any) => ({
               ...p,
               assetId: p.assetId || p.id,
               playerId: p.playerId || p.id,
@@ -271,14 +273,8 @@ export class SearchService {
               league: p.league || { name: p.leagueName || 'Unknown', id: 0 },
               nation: p.nation || { name: p.nationName || 'Unknown', id: 0 }
             }));
-
             players.push(...normalized);
-            logger.info(`Progress: ${players.length}/${targetSize} players collected.`);
-
-            if (players.length >= targetSize) break;
-            currentPage++;
-            // Longer delay to prevent IP blocking/browser throttling
-            await new Promise(r => setTimeout(r, 3000));
+            logger.info(`SSR Loop Complete: Captured ${players.length} players.`);
           }
         } finally {
           await browser.close();

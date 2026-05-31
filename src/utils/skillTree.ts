@@ -1,4 +1,3 @@
-// Master Skill Tree (Requirements & Boosts)
 export const SKILL_TREE: Record<number, any> = {
   "1010": {
     "id": 1010,
@@ -5628,6 +5627,35 @@ export const SKILL_TREE: Record<number, any> = {
       }
     }
   },
+  "30021": {
+    "id": 30021,
+    "name": "Defender",
+    "maxLevel": 2,
+    "requirement": null,
+    "unlocks": {},
+    "boosts": {
+      "1": {
+        "acc": 10,
+        "hea": 10,
+        "mrk": 10,
+        "spd": 10,
+        "str": 10,
+        "jmp": 10,
+        "stt": 10,
+        "slt": 10
+      },
+      "2": {
+        "acc": 20,
+        "hea": 20,
+        "mrk": 20,
+        "spd": 20,
+        "str": 20,
+        "jmp": 20,
+        "stt": 20,
+        "slt": 20
+      }
+    }
+  },
   "30030": {
     "id": 30030,
     "name": "Stopper",
@@ -5802,6 +5830,35 @@ export const SKILL_TREE: Record<number, any> = {
       }
     }
   },
+  "31021": {
+    "id": 31021,
+    "name": "Complete Fullback",
+    "maxLevel": 2,
+    "requirement": null,
+    "unlocks": {},
+    "boosts": {
+      "1": {
+        "acc": 10,
+        "awr": 10,
+        "cro": 10,
+        "spd": 10,
+        "str": 10,
+        "bal": 10,
+        "stt": 10,
+        "slt": 10
+      },
+      "2": {
+        "acc": 20,
+        "awr": 20,
+        "cro": 20,
+        "spd": 20,
+        "str": 20,
+        "bal": 20,
+        "stt": 20,
+        "slt": 20
+      }
+    }
+  },
   "31030": {
     "id": 31030,
     "name": "Wingback",
@@ -5826,6 +5883,35 @@ export const SKILL_TREE: Record<number, any> = {
         "bac": 20,
         "cro": 20,
         "spa": 20,
+        "slt": 20
+      }
+    }
+  },
+  "31031": {
+    "id": 31031,
+    "name": "Wingback",
+    "maxLevel": 2,
+    "requirement": null,
+    "unlocks": {},
+    "boosts": {
+      "1": {
+        "acc": 10,
+        "awr": 10,
+        "bac": 10,
+        "cro": 10,
+        "spd": 10,
+        "spa": 10,
+        "agi": 10,
+        "slt": 10
+      },
+      "2": {
+        "acc": 20,
+        "awr": 20,
+        "bac": 20,
+        "cro": 20,
+        "spd": 20,
+        "spa": 20,
+        "agi": 20,
         "slt": 20
       }
     }
@@ -5971,6 +6057,35 @@ export const SKILL_TREE: Record<number, any> = {
       }
     }
   },
+  "32021": {
+    "id": 32021,
+    "name": "Holding",
+    "maxLevel": 2,
+    "requirement": null,
+    "unlocks": {},
+    "boosts": {
+      "1": {
+        "acc": 10,
+        "agg": 10,
+        "awr": 10,
+        "mrk": 10,
+        "spd": 10,
+        "spa": 10,
+        "str": 10,
+        "stt": 10
+      },
+      "2": {
+        "acc": 20,
+        "agg": 20,
+        "awr": 20,
+        "mrk": 20,
+        "spd": 20,
+        "spa": 20,
+        "str": 20,
+        "stt": 20
+      }
+    }
+  },
   "32030": {
     "id": 32030,
     "name": "Box-To-Box",
@@ -5996,6 +6111,35 @@ export const SKILL_TREE: Record<number, any> = {
       "2": {
         "acc": 20,
         "awr": 20,
+        "spa": 20,
+        "str": 20,
+        "bal": 20,
+        "stt": 20
+      }
+    }
+  },
+  "32031": {
+    "id": 32031,
+    "name": "Box-To-Box",
+    "maxLevel": 2,
+    "requirement": null,
+    "unlocks": {},
+    "boosts": {
+      "1": {
+        "acc": 10,
+        "awr": 10,
+        "bac": 10,
+        "spd": 10,
+        "spa": 10,
+        "str": 10,
+        "bal": 10,
+        "stt": 10
+      },
+      "2": {
+        "acc": 20,
+        "awr": 20,
+        "bac": 20,
+        "spd": 20,
         "spa": 20,
         "str": 20,
         "bal": 20,
@@ -6282,6 +6426,35 @@ export const SKILL_TREE: Record<number, any> = {
       }
     }
   },
+  "33051": {
+    "id": 33051,
+    "name": "Half-Winger",
+    "maxLevel": 2,
+    "requirement": null,
+    "unlocks": {},
+    "boosts": {
+      "1": {
+        "acc": 10,
+        "bac": 10,
+        "dri": 10,
+        "spd": 10,
+        "spa": 10,
+        "agi": 10,
+        "cur": 10,
+        "vis": 10
+      },
+      "2": {
+        "acc": 20,
+        "bac": 20,
+        "dri": 20,
+        "spd": 20,
+        "spa": 20,
+        "agi": 20,
+        "cur": 20,
+        "vis": 20
+      }
+    }
+  },
   "33060": {
     "id": 33060,
     "name": "Playmaker",
@@ -6310,6 +6483,35 @@ export const SKILL_TREE: Record<number, any> = {
         "spd": 20,
         "spa": 20,
         "bal": 20,
+        "vis": 20
+      }
+    }
+  },
+  "33061": {
+    "id": 33061,
+    "name": "Playmaker",
+    "maxLevel": 2,
+    "requirement": null,
+    "unlocks": {},
+    "boosts": {
+      "1": {
+        "acc": 10,
+        "bac": 10,
+        "dri": 10,
+        "lpa": 10,
+        "spd": 10,
+        "spa": 10,
+        "cur": 10,
+        "vis": 10
+      },
+      "2": {
+        "acc": 20,
+        "bac": 20,
+        "dri": 20,
+        "lpa": 20,
+        "spd": 20,
+        "spa": 20,
+        "cur": 20,
         "vis": 20
       }
     }
@@ -6467,6 +6669,35 @@ export const SKILL_TREE: Record<number, any> = {
       }
     }
   },
+  "34031": {
+    "id": 34031,
+    "name": "Complete Wide Midfielder",
+    "maxLevel": 2,
+    "requirement": null,
+    "unlocks": {},
+    "boosts": {
+      "1": {
+        "acc": 10,
+        "agg": 10,
+        "bac": 10,
+        "cro": 10,
+        "dri": 10,
+        "spd": 10,
+        "spa": 10,
+        "stt": 10
+      },
+      "2": {
+        "acc": 20,
+        "agg": 20,
+        "bac": 20,
+        "cro": 20,
+        "dri": 20,
+        "spd": 20,
+        "spa": 20,
+        "stt": 20
+      }
+    }
+  },
   "34040": {
     "id": 34040,
     "name": "Traditional Winger",
@@ -6608,6 +6839,35 @@ export const SKILL_TREE: Record<number, any> = {
       }
     }
   },
+  "35021": {
+    "id": 35021,
+    "name": "Shadow Striker",
+    "maxLevel": 2,
+    "requirement": null,
+    "unlocks": {},
+    "boosts": {
+      "1": {
+        "acc": 10,
+        "bac": 10,
+        "spd": 10,
+        "fin": 10,
+        "sho": 10,
+        "pos": 10,
+        "rea": 10,
+        "cur": 10
+      },
+      "2": {
+        "acc": 20,
+        "bac": 20,
+        "spd": 20,
+        "fin": 20,
+        "sho": 20,
+        "pos": 20,
+        "rea": 20,
+        "cur": 20
+      }
+    }
+  },
   "35030": {
     "id": 35030,
     "name": "Playmaker",
@@ -6669,7 +6929,7 @@ export const SKILL_TREE: Record<number, any> = {
     "name": "Long Shot",
     "maxLevel": 1,
     "requirement": {
-      "skillId": 35040,
+      "skillId": 35020,
       "level": 2
     },
     "unlocks": {},
@@ -6686,7 +6946,7 @@ export const SKILL_TREE: Record<number, any> = {
     "name": "Dribbling",
     "maxLevel": 1,
     "requirement": {
-      "skillId": 35040,
+      "skillId": 35020,
       "level": 2
     },
     "unlocks": {},
@@ -6703,7 +6963,7 @@ export const SKILL_TREE: Record<number, any> = {
     "name": "Crossing",
     "maxLevel": 1,
     "requirement": {
-      "skillId": 35040,
+      "skillId": 35020,
       "level": 2
     },
     "unlocks": {},
@@ -6838,6 +7098,35 @@ export const SKILL_TREE: Record<number, any> = {
       }
     }
   },
+  "36041": {
+    "id": 36041,
+    "name": "Inside Forward",
+    "maxLevel": 2,
+    "requirement": null,
+    "unlocks": {},
+    "boosts": {
+      "1": {
+        "acc": 10,
+        "bac": 10,
+        "dri": 10,
+        "spd": 10,
+        "fin": 10,
+        "sho": 10,
+        "agi": 10,
+        "cur": 10
+      },
+      "2": {
+        "acc": 20,
+        "bac": 20,
+        "dri": 20,
+        "spd": 20,
+        "fin": 20,
+        "sho": 20,
+        "agi": 20,
+        "cur": 20
+      }
+    }
+  },
   "36050": {
     "id": 36050,
     "name": "Dribbling",
@@ -6955,6 +7244,35 @@ export const SKILL_TREE: Record<number, any> = {
       }
     }
   },
+  "37021": {
+    "id": 37021,
+    "name": "Advance Forward",
+    "maxLevel": 2,
+    "requirement": null,
+    "unlocks": {},
+    "boosts": {
+      "1": {
+        "acc": 10,
+        "dri": 10,
+        "spd": 10,
+        "fin": 10,
+        "sho": 10,
+        "str": 10,
+        "pos": 10,
+        "vol": 10
+      },
+      "2": {
+        "acc": 20,
+        "dri": 20,
+        "spd": 20,
+        "fin": 20,
+        "sho": 20,
+        "str": 20,
+        "pos": 20,
+        "vol": 20
+      }
+    }
+  },
   "37030": {
     "id": 37030,
     "name": "Poacher",
@@ -6975,6 +7293,35 @@ export const SKILL_TREE: Record<number, any> = {
       },
       "2": {
         "acc": 20,
+        "fin": 20,
+        "pos": 20,
+        "rea": 20,
+        "agi": 20,
+        "vol": 20
+      }
+    }
+  },
+  "37031": {
+    "id": 37031,
+    "name": "Poacher",
+    "maxLevel": 2,
+    "requirement": null,
+    "unlocks": {},
+    "boosts": {
+      "1": {
+        "acc": 10,
+        "hea": 10,
+        "spd": 10,
+        "fin": 10,
+        "pos": 10,
+        "rea": 10,
+        "agi": 10,
+        "vol": 10
+      },
+      "2": {
+        "acc": 20,
+        "hea": 20,
+        "spd": 20,
         "fin": 20,
         "pos": 20,
         "rea": 20,
@@ -7040,6 +7387,35 @@ export const SKILL_TREE: Record<number, any> = {
         "spa": 20,
         "pos": 20,
         "agi": 20
+      }
+    }
+  },
+  "37051": {
+    "id": 37051,
+    "name": "False 9",
+    "maxLevel": 2,
+    "requirement": null,
+    "unlocks": {},
+    "boosts": {
+      "1": {
+        "acc": 10,
+        "bac": 10,
+        "dri": 10,
+        "spd": 10,
+        "spa": 10,
+        "fin": 10,
+        "agi": 10,
+        "vis": 10
+      },
+      "2": {
+        "acc": 20,
+        "bac": 20,
+        "dri": 20,
+        "spd": 20,
+        "spa": 20,
+        "fin": 20,
+        "agi": 20,
+        "vis": 20
       }
     }
   },

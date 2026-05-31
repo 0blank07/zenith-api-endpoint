@@ -298,5 +298,18 @@ export const RENDERZ_DICTIONARY: Record<string, string> = {
   "NAME_SKILL_38040": "GK Passing",
   "NAME_SKILL_34010": "Wide Midfielder",
   "NAME_SKILL_39010": "Scoring",
-  "NAME_SKILL_39013": "Defending"
+  "NAME_SKILL_39013": "Defending",
+  "NAME_SKILL_36041": "Inside Forward",
+  "NAME_SKILL_35021": "Shadow Striker",
+  "NAME_SKILL_32031": "Box-To-Box",
+  "NAME_SKILL_31031": "Wingback",
+  "NAME_SKILL_37031": "Poacher",
+  "NAME_SKILL_37021": "Advance Forward",
+  "NAME_SKILL_34031": "Complete Wide Midfielder",
+  "NAME_SKILL_30021": "Defender",
+  "NAME_SKILL_32021": "Holding",
+  "NAME_SKILL_37051": "False 9",
+  "NAME_SKILL_33061": "Playmaker",
+  "NAME_SKILL_31021": "Complete Fullback",
+  "NAME_SKILL_33051": "Half-Winger"
 };

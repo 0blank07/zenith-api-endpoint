@@ -15,10 +15,14 @@ import {
   getSkillDetails,
   SKILL_BOOSTS
 } from './utils/dataCleaner';
+import { healMissingSkills, MissingSkill } from './scripts/healSkills';
 
 const program = new Command();
 const searchService = new SearchService();
 const dbService = new PostgresService();
+
+// Global collector for self-healing
+const missingSkillsToHeal: MissingSkill[] = [];
 
 program
   .name('renderz-cli')
@@ -34,6 +38,7 @@ program
     try {
       const players = await searchService.searchByName(options.name, parseInt(options.size));
       displayPlayers(players);
+      await healMissingSkills(missingSkillsToHeal);
     } catch (error: any) {
       logger.error(`Search failed: ${error.message}`);
     }
@@ -47,6 +52,7 @@ program
     try {
       const players = await searchService.getLatestCards(parseInt(options.size));
       displayPlayers(players);
+      await healMissingSkills(missingSkillsToHeal);
     } catch (error: any) {
       logger.error(`Failed to get latest cards: ${error.message}`);
     }
@@ -61,6 +67,7 @@ program
     try {
       const players = await searchService.getByRating(parseInt(options.min), parseInt(options.max));
       displayPlayers(players);
+      await healMissingSkills(missingSkillsToHeal);
     } catch (error: any) {
       logger.error(`Rating filter failed: ${error.message}`);
     }
@@ -93,6 +100,7 @@ program
         return;
       }
       displayPlayerDetail(player);
+      await healMissingSkills(missingSkillsToHeal);
     } catch (error: any) {
       logger.error(`Failed to fetch details: ${error.message}`);
     }
@@ -205,6 +213,17 @@ function displayPlayerDetail(player: Player) {
 
   console.log(`\n[ SKILL PROGRESSION TREE ]`);
   if (player.skillStyleSkills && player.skillStyleSkills.length > 0) {
+    // 1. Get all skills data for this player
+    const playerSkills = player.skillStyleSkills.map(sk => ({
+      ...sk,
+      data: SKILL_BOOSTS[sk.id],
+      title: getSkillTitle(sk.id, sk.name, sk.image)
+    }));
+
+    // 2. Identify the Tiers by following the chain on the card
+    const tier1 = playerSkills.find(s => s.data && s.data.requirement === null);
+    const tier2 = playerSkills.find(s => s.data && s.data.requirement && tier1 && s.data.requirement.skillId === tier1.id);
+    
     player.skillStyleSkills.forEach((sk) => {
       const title = getSkillTitle(sk.id, sk.name, sk.image);
       console.log(`\n> SKILL: ${title}`);
@@ -212,8 +231,24 @@ function displayPlayerDetail(player: Player) {
       
       const skillData = SKILL_BOOSTS[sk.id];
       if (skillData) {
-        const baseDetails = getSkillDetails(sk.id, 1);
-        if (baseDetails?.requires) console.log(`  Requirement: ${baseDetails.requires}`);
+        // Dynamic Requirement Logic (Follow the Chain)
+        let requirementText = '';
+        
+        const isTier1 = tier1 && sk.id === tier1.id;
+        const isTier2 = tier2 && sk.id === tier2.id;
+        const isTier3 = !isTier1 && !isTier2;
+
+        if (isTier2 && tier1) {
+          requirementText = `${tier1.title} Lvl 2`;
+        } else if (isTier3 && tier2) {
+          requirementText = `${tier2.title} Lvl 2`;
+        } else if (isTier3 && tier1 && !tier2) {
+          // Fallback if card skips a tier
+          requirementText = `${tier1.title} Lvl 2`;
+        }
+
+        if (requirementText) console.log(`  Requirement: ${requirementText}`);
+
         for (let lvl = 1; lvl <= 3; lvl++) {
           const details = getSkillDetails(sk.id, lvl);
           if (details) {
@@ -226,6 +261,11 @@ function displayPlayerDetail(player: Player) {
         }
       } else {
         console.log(`  (No details available for this skill)`);
+        missingSkillsToHeal.push({
+          skillId: sk.id,
+          playerId: player.playerId,
+          name: title
+        });
       }
     });
   }
