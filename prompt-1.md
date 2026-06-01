@@ -36,10 +36,9 @@
  TOTAL:      3474
 
 [ TRAITS ]
-- Roulette [https://images-v2.renderz.app/skillmovelogo_23_0?verify=1779957553-1xmtLWCXAnH%2F9iYOVdkzaHrHwnALcZyfUgzNCInskcw%3D]
-- Diver [https://images-v2.renderz.app/traitlogo_23_2?verify=1779957566-qjdkf8624co2D%2Fy6JhrHNq50gWoPPn%2FIvnIUicnSdJY%3D]
+- Powerful Driven Free Kick [https://images-v2.renderz.app/traitlogo_23_2?verify=1779957566-qjdkf8624co2D%2Fy6JhrHNq50gWoPPn%2FIvnIUicnSdJY%3D]
 - Finesse Shot [https://images-v2.renderz.app/traitlogo_23_13?verify=1779957566-zS8KgfAbJ7XexM47hDrnuWeP8%2Bfz4kh63%2FE%2Bjfqdoz4%3D]
-- Speed Dribbler [https://images-v2.renderz.app/traitlogo_23_18?verify=1779957566-3Ea3WzRChmnycbVgpvngUb6rHUJtwnJtjSL%2FqbXrTh8%3D]
+- Play Maker [https://images-v2.renderz.app/traitlogo_23_18?verify=1779957566-3Ea3WzRChmnycbVgpvngUb6rHUJtwnJtjSL%2FqbXrTh8%3D]
 
 [ SKILL MOVE REQUIREMENTS ]
 - PRIMARY:   Roulette
@@ -55,20 +54,21 @@
 
 > SKILL: Shadow Striker
   Icon: https://images-v2.renderz.app/skill_S10_SHADOW_STRIKER_3?verify=1779957464-tBpGQ%2F9u%2FQCOe%2FJORBiPgPEci6SchG%2FX8YH9%2BnDWy3o%3D
+  Requirement: Attacking Midfielder Lvl 2
   [Level 1] Boosts: Acceleration +10, Finishing +10, Shot Power +10, Positioning +10, Reactions +10, Curve +10
   [Level 2] Boosts: Acceleration +20, Finishing +20, Shot Power +20, Positioning +20, Reactions +20, Curve +20
 
 > SKILL: Long Shot
   Icon: https://images-v2.renderz.app/skill_S10_LONG_SHOT_3?verify=1779957464-Znsh28knG1C5mJ022R0GkPOsxR1KKNGXnmghzskSPeI%3D
-  Requirement: Attacking Midfielder Lvl 2
+  Requirement: Shadow Striker Lvl 2
   [Level 1] Boosts: Shot Power +15, Long Shots +15, Curve +15
 
 > SKILL: Dribbling
   Icon: https://images-v2.renderz.app/skill_S10_DRIBBLING_3?verify=1779957464-wo3kyMHT76EObel5dt9bhBzT86iUzwBrNSQB607htzc%3D
-  Requirement: Attacking Midfielder Lvl 2
+  Requirement: Shadow Striker Lvl 2
   [Level 1] Boosts: Ball Control +15, Dribbling +15, Agility +15
 
 > SKILL: Crossing
   Icon: https://images-v2.renderz.app/skill_S10_CROSSING_3?verify=1779957464-Ruwul2sWUI3p38m3IWrMZu%2FN53Hz9t1TnxP05DSDCk4%3D
-  Requirement: Attacking Midfielder Lvl 2
+  Requirement: Shadow Striker Lvl 2
   [Level 1] Boosts: Crossing +15, Long Passing +15, Vision +15

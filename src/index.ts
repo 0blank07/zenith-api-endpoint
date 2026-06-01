@@ -138,16 +138,7 @@ function displayPlayerDetail(player: Player) {
   }
   const allAltPos = Array.from(new Set([...(player.potentialPositions || []), ...skillUnlocks]));
 
-  // 2. Merge Traits & Skill Moves (as requested: "Ball Roll, Roulette are traits")
-  const allTraits = [...(player.traits || [])];
-  if (player.skillMoves) {
-    allTraits.unshift({
-      id: player.skillMoves.id,
-      title: player.skillMoves.title,
-      description: player.skillMoves.description,
-      image: player.skillMoves.image
-    });
-  }
+  const traits = player.traits || [];
 
   console.log(`\n===========================================================`);
   const displayName = player.cardName || player.commonName || `${player.firstName} ${player.lastName}` || 'Unknown';
@@ -197,8 +188,8 @@ function displayPlayerDetail(player: Player) {
   console.log(` TOTAL:      ${s.total}`);
 
   console.log(`\n[ TRAITS ]`);
-  if (allTraits.length > 0) {
-    allTraits.forEach(t => {
+  if (traits.length > 0) {
+    traits.forEach(t => {
       console.log(`- ${getTraitTitle(t.id, t.title)} [${t.image}]`);
     });
   } else {

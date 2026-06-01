@@ -23,6 +23,7 @@ export class SearchService {
     const browser = await chromium.launch({ headless: process.env.HEADLESS !== 'false' });
     const page = await browser.newPage();
     let capturedData: Player[] = [];
+    let renderedTraits: Player['traits'] | null = null;
 
     try {
       logger.info(`SSR Scrape: Navigating to ${url}...`);
@@ -43,11 +44,15 @@ export class SearchService {
       });
 
       await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 90000 });
-      
+
       // Wait up to 20 seconds for the network request to be caught
       for (let i = 0; i < 40; i++) {
         if (capturedData.length > 0) break;
         await new Promise(r => setTimeout(r, 500));
+      }
+
+      if (url.includes('/player/')) {
+        renderedTraits = await this.extractRenderedTraits(page);
       }
 
       if (capturedData.length > 0) {
@@ -148,6 +153,7 @@ export class SearchService {
                 league: raw.league || { name: raw.leagueName || 'Unknown', id: 0 },
                 nation: raw.nation || { name: raw.nationName || 'Unknown', id: 0 },
                 skillStyleSkills,
+                traits: renderedTraits ?? raw.traits ?? [],
                 skillMovesLevel: typeof raw.skillMovesLevel === 'number' ? raw.skillMovesLevel : parseInt(raw.skillMoves?.stars?.toString().match(/\d+/)?.[0] || '3')
               };
             });
@@ -160,6 +166,58 @@ export class SearchService {
       return [];
     } finally {
       await browser.close();
+    }
+  }
+
+  private async extractRenderedTraits(page: any): Promise<Player['traits'] | null> {
+    try {
+      await page.waitForSelector('.grid-auto-rows', { timeout: 10000 }).catch(() => null);
+      await page.waitForFunction(() => {
+        const traitCards = Array.from(document.querySelectorAll('.grid-auto-rows > div'))
+          .filter((card) => card.querySelector('img')?.getAttribute('src')?.includes('traitlogo_23_'));
+
+        if (traitCards.length === 0) return true;
+
+        return traitCards.every((card) => {
+          const spans = Array.from(card.querySelectorAll('span'));
+          const title = spans
+            .map((span) => span.textContent?.replace(/\s+/g, ' ').trim() || '')
+            .reverse()
+            .find((text) => text.length > 0 && !/^traits?[_ ]title[_ ]\d+$/i.test(text)) || '';
+          return title.length > 0 && !/^traits?[_ ]title[_ ]\d+$/i.test(title);
+        });
+      }, { timeout: 10000 }).catch(() => null);
+
+      return await page.evaluate(() => {
+        const cards = Array.from(document.querySelectorAll('.grid-auto-rows > div'));
+        if (cards.length === 0) return null;
+
+        return cards
+          .map((card: Element) => {
+            const image = card.querySelector('img')?.getAttribute('src') || '';
+            const match = image.match(/traitlogo_23_(\d+)/);
+            if (!match) return null;
+
+            const spans = Array.from(card.querySelectorAll('span'));
+            const visibleTitle = spans
+              .map((span) => span.textContent?.replace(/\s+/g, ' ').trim() || '')
+              .reverse()
+              .find((text) => text.length > 0 && !/^traits?[_ ]title[_ ]\d+$/i.test(text));
+            const title = visibleTitle
+              ? visibleTitle
+              : `trait_name_${match[1]}`;
+            return {
+              id: Number(match[1]),
+              title,
+              description: `trait_desc_${match[1]}`,
+              image
+            };
+          })
+          .filter((trait): trait is { id: number; title: string; description: string; image: string } => trait !== null);
+      });
+    } catch (error: any) {
+      logger.warn(`Could not extract rendered traits: ${error.message}`);
+      return null;
     }
   }
 

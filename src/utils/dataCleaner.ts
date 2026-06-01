@@ -165,25 +165,36 @@ export function getSkillRequirements(skillLevel: number) {
  * TRAIT TITLES
  */
 const TRAITS: Record<number, string> = {
+  1: 'Long Throw',
+  2: 'Powerful Driven Free Kick',
+  7: 'Dives Into Tackles',
+  12: 'Early Crosser',
   13: 'Finesse Shot',
-  16: 'Outside Foot Shot',
-  18: 'Speed Dribbler',
-  15: 'Play Maker',
-  12: 'Long Passer',
-  11: 'Long Shot Taker',
-  8: 'Early Crosser',
-  21: 'Solid Player',
-  25: 'Leadership',
-  2: 'Diver',
+  14: 'Flair',
+  15: 'Long Passer',
+  16: 'Long Shot Taker',
+  18: 'Play Maker',
+  22: 'Power Header',
+  25: 'Outside Foot Shot',
+  29: 'Acrobatic Clearance',
   3: 'Injury Prone',
-  14: 'Power Header',
+  8: 'Early Crosser',
+  11: 'Long Shot Taker',
   17: 'Technical Dribbler',
   20: 'Flair',
-  22: 'Dives Into Tackles',
+  21: 'Solid Player',
   24: 'Team Player'
 };
 
 export function getTraitTitle(id: number, rawTitle: string): string {
+  if (/^traits?[_ ]title[_ ]\d+$/i.test(rawTitle)) {
+    return TRAITS[id] || cleanName(rawTitle);
+  }
+
+  if (rawTitle && !/^trait_name_\d+$/i.test(rawTitle)) {
+    return cleanName(rawTitle);
+  }
+
   // If the title contains "skillmove" or "skill_move", it's a move being shown as a trait
   if (rawTitle.toLowerCase().includes('skillmove') || rawTitle.toLowerCase().includes('skill_move')) {
     return cleanName(rawTitle);
