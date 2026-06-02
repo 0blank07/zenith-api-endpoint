@@ -57,17 +57,7 @@ export class SearchService {
 
       if (capturedData.length > 0) {
           // Normalize intercepted data
-          return capturedData.map((p: any) => {
-              const raw = p as any;
-              return {
-                ...raw,
-                assetId: raw.assetId || raw.id,
-                playerId: raw.playerId || raw.id,
-                club: raw.club || { name: raw.clubName || 'Unknown', id: 0 },
-                league: raw.league || { name: raw.leagueName || 'Unknown', id: 0 },
-                nation: raw.nation || { name: raw.nationName || 'Unknown', id: 0 }
-              };
-          });
+          return capturedData.map((p: any) => this.normalizePlayer(p));
       }
 
       // Fallback: Try rehydrating from __data.json
@@ -134,28 +124,7 @@ export class SearchService {
           if (players && players.length > 0) {
             logger.info(`SSR Extraction successful! Found ${players.length} players.`);
             return players.map(p => {
-              const raw = p as any;
-              
-              const skillStyleSkills = raw.skillStyleSkills || (raw.skillsData ? raw.skillsData.map((s: any) => ({
-                id: s.skill.id,
-                name: s.skill.name,
-                image: s.skill.image
-              })) : []);
-
-              return {
-                ...raw,
-                assetId: raw.assetId || raw.id,
-                playerId: raw.playerId || raw.id,
-                weakFoot: raw.weakFoot || parseInt(raw.weakFootRating?.toString().match(/\d+/)?.[0] || '3'),
-                birthday: raw.birthday || '1990-01-01T00:00:00Z',
-                source: raw.source || 'Unknown',
-                club: raw.club || { name: raw.clubName || 'Unknown', id: 0 },
-                league: raw.league || { name: raw.leagueName || 'Unknown', id: 0 },
-                nation: raw.nation || { name: raw.nationName || 'Unknown', id: 0 },
-                skillStyleSkills,
-                traits: renderedTraits ?? raw.traits ?? [],
-                skillMovesLevel: typeof raw.skillMovesLevel === 'number' ? raw.skillMovesLevel : parseInt(raw.skillMoves?.stars?.toString().match(/\d+/)?.[0] || '3')
-              };
+              return this.normalizePlayer(p, renderedTraits);
             });
           }
         }
@@ -169,12 +138,99 @@ export class SearchService {
     }
   }
 
+  private normalizePlayer(raw: any, renderedTraits: Player['traits'] | null = null): Player {
+    const skillStyleSkills = raw.skillStyleSkills || (raw.skillsData ? raw.skillsData.map((s: any) => ({
+      id: s.skill.id,
+      name: s.skill.name,
+      image: s.skill.image
+    })) : []);
+
+    return {
+      ...raw,
+      assetId: raw.assetId || raw.id,
+      playerId: raw.playerId || raw.id,
+      weakFoot: raw.weakFoot || parseInt(raw.weakFootRating?.toString().match(/\d+/)?.[0] || '3'),
+      birthday: raw.birthday || '1990-01-01T00:00:00Z',
+      source: raw.source || 'Unknown',
+      club: raw.club || { name: raw.clubName || 'Unknown', id: this.extractLinkedId(raw.clubLink) },
+      league: raw.league || { name: raw.leagueName || 'Unknown', id: this.extractLinkedId(raw.leagueLink) },
+      nation: raw.nation || { name: raw.nationName || 'Unknown', id: this.extractLinkedId(raw.nationLink) },
+      skillStyleSkills,
+      traits: this.mergeTraits(raw.traits, renderedTraits),
+      skillMovesLevel: typeof raw.skillMovesLevel === 'number' ? raw.skillMovesLevel : parseInt(raw.skillMoves?.stars?.toString().match(/\d+/)?.[0] || '3')
+    };
+  }
+
+  private extractLinkedId(link: unknown): number {
+    if (typeof link !== 'string') return 0;
+    return parseInt(link.match(/\d+$/)?.[0] || '0');
+  }
+
+  private mergeTraits(rawTraits: unknown, renderedTraits: Player['traits'] | null): Player['traits'] {
+    const raw = this.normalizeTraits(rawTraits);
+    const rendered = this.normalizeTraits(renderedTraits);
+
+    if (raw.length === 0) return rendered;
+    if (rendered.length === 0) return raw;
+
+    const renderedById = new Map(rendered.map(trait => [trait.id, trait]));
+    const rawIds = new Set(raw.map(trait => trait.id));
+    const merged = raw.map(rawTrait => {
+      const renderedTrait = renderedById.get(rawTrait.id);
+      if (!renderedTrait) return rawTrait;
+
+      return {
+        ...rawTrait,
+        title: this.isUsefulRenderedTraitTitle(renderedTrait.title) ? renderedTrait.title : rawTrait.title,
+        description: renderedTrait.description || rawTrait.description,
+        image: rawTrait.image || renderedTrait.image
+      };
+    });
+
+    for (const renderedTrait of rendered) {
+      if (!rawIds.has(renderedTrait.id)) {
+        merged.push(renderedTrait);
+      }
+    }
+
+    return merged;
+  }
+
+  private normalizeTraits(traits: unknown): Player['traits'] {
+    if (!Array.isArray(traits)) return [];
+
+    return traits
+      .map((trait: any) => {
+        const image = typeof trait?.image === 'string' ? trait.image : '';
+        const imageId = image.match(/traitlogo_23_(\d+)/)?.[1];
+        const id = Number(trait?.id ?? imageId);
+        if (!Number.isFinite(id)) return null;
+
+        return {
+          id,
+          title: typeof trait?.title === 'string' && trait.title.trim().length > 0 ? trait.title : `trait_name_${id}`,
+          description: typeof trait?.description === 'string' && trait.description.trim().length > 0 ? trait.description : `trait_desc_${id}`,
+          image
+        };
+      })
+      .filter((trait): trait is { id: number; title: string; description: string; image: string } => trait !== null);
+  }
+
+  private isUsefulRenderedTraitTitle(title: string): boolean {
+    const normalized = title.trim();
+    return normalized.length > 0
+      && !/^traits?[_ ]title[_ ]\d+$/i.test(normalized)
+      && !/^trait_name_\d+$/i.test(normalized)
+      && !/^\d+$/.test(normalized);
+  }
+
   private async extractRenderedTraits(page: any): Promise<Player['traits'] | null> {
     try {
-      await page.waitForSelector('.grid-auto-rows', { timeout: 10000 }).catch(() => null);
+      await page.waitForSelector('img[src*="traitlogo_23_"]', { timeout: 10000 }).catch(() => null);
       await page.waitForFunction(() => {
-        const traitCards = Array.from(document.querySelectorAll('.grid-auto-rows > div'))
-          .filter((card) => card.querySelector('img')?.getAttribute('src')?.includes('traitlogo_23_'));
+        const traitCards = Array.from(document.querySelectorAll('img[src*="traitlogo_23_"]'))
+          .map((image) => image.closest('.grid-auto-rows > div') ?? image.closest('div'))
+          .filter(Boolean) as Element[];
 
         if (traitCards.length === 0) return true;
 
@@ -189,7 +245,9 @@ export class SearchService {
       }, { timeout: 10000 }).catch(() => null);
 
       return await page.evaluate(() => {
-        const cards = Array.from(document.querySelectorAll('.grid-auto-rows > div'));
+        const cards = Array.from(document.querySelectorAll('img[src*="traitlogo_23_"]'))
+          .map((image) => image.closest('.grid-auto-rows > div') ?? image.closest('div'))
+          .filter(Boolean) as Element[];
         if (cards.length === 0) return null;
 
         return cards
@@ -228,7 +286,7 @@ export class SearchService {
     try {
       // 1. Try API first (Fastest)
       const response = await this.client.post<SearchResponse>(CONSTANTS.SEARCH_ENDPOINT, payload);
-      return response.players;
+      return response.players.map(player => this.normalizePlayer(player));
     } catch (error: any) {
       if (error.message.includes('SESSION_BLOCKED') || error.message.includes('403')) {
         logger.warn('Axios blocked. Entering Multi-Page SSR Loop...');
@@ -323,14 +381,7 @@ export class SearchService {
           }, { targetSize, tokens, options, endpoint: CONSTANTS.SEARCH_ENDPOINT });
 
           if (allResults.length > 0) {
-            const normalized = allResults.map((p: any) => ({
-              ...p,
-              assetId: p.assetId || p.id,
-              playerId: p.playerId || p.id,
-              club: p.club || { name: p.clubName || 'Unknown', id: 0 },
-              league: p.league || { name: p.leagueName || 'Unknown', id: 0 },
-              nation: p.nation || { name: p.nationName || 'Unknown', id: 0 }
-            }));
+            const normalized = allResults.map((p: any) => this.normalizePlayer(p));
             players.push(...normalized);
             logger.info(`SSR Loop Complete: Captured ${players.length} players.`);
           }
@@ -344,14 +395,87 @@ export class SearchService {
     }
   }
 
+  private async getByAssetIdViaSSRSearch(assetId: number): Promise<Player | null> {
+    const { chromium } = require('playwright-extra');
+    const stealthPlugin = require('puppeteer-extra-plugin-stealth');
+    chromium.use(stealthPlugin());
+
+    const browser = await chromium.launch({ headless: process.env.HEADLESS !== 'false' });
+    const page = await browser.newPage();
+    let tokens: { token: string, fingerprint: string } | null = null;
+
+    try {
+      page.on('request', (req: any) => {
+        if (tokens || !req.url().includes('elasticsearch')) return;
+
+        const headers = req.headers();
+        if (headers['x-secure-token'] && headers['x-client-fingerprint']) {
+          tokens = {
+            token: headers['x-secure-token'],
+            fingerprint: headers['x-client-fingerprint']
+          };
+        }
+      });
+
+      await page.goto(`${CONSTANTS.BASE_URL}/24/players?page=1`, { waitUntil: 'domcontentloaded', timeout: 90000 });
+
+      for (let i = 0; i < 40; i++) {
+        if (tokens) break;
+        await new Promise(resolve => setTimeout(resolve, 500));
+      }
+
+      if (!tokens) {
+        logger.warn(`Could not capture search tokens for player ${assetId}; falling back to route SSR.`);
+        return null;
+      }
+
+      const result = await page.evaluate(async (params: { assetId: number, tokens: { token: string, fingerprint: string }, endpoint: string }) => {
+        const response = await fetch(params.endpoint, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-secure-token': params.tokens.token,
+            'x-client-fingerprint': params.tokens.fingerprint
+          },
+          body: JSON.stringify({
+            query: { bool: { must: [{ match: { assetId: params.assetId } }], should: [], must_not: [] } },
+            from: 0,
+            size: 1,
+            _source: []
+          })
+        });
+
+        if (!response.ok) {
+          return null;
+        }
+
+        const json = await response.json();
+        return json.players?.[0] || null;
+      }, { assetId, tokens, endpoint: CONSTANTS.SEARCH_ENDPOINT });
+
+      if (!result) return null;
+      logger.info(`SSR search API detail successful for player ${assetId}.`);
+      return this.normalizePlayer(result);
+    } catch (error: any) {
+      logger.warn(`SSR search API detail failed for player ${assetId}: ${error.message}`);
+      return null;
+    } finally {
+      await browser.close();
+    }
+  }
+
   async getByAssetId(assetId: number): Promise<Player | null> {
     const payload = { query: { bool: { must: [{ match: { assetId } }], should: [], must_not: [] } }, from: 0, size: 1, _source: [] };
     try {
       const response = await this.client.post<SearchResponse>(CONSTANTS.SEARCH_ENDPOINT, payload);
-      return response.players[0] || null;
+      const player = response.players[0];
+      return player ? this.normalizePlayer(player) : null;
     } catch (error: any) {
       if (error.message.includes('SESSION_BLOCKED') || error.message.includes('403')) {
         logger.warn(`Detail blocked. Fetching SSR for player ${assetId}...`);
+        const apiPlayer = await this.getByAssetIdViaSSRSearch(assetId);
+        if (apiPlayer) return apiPlayer;
+
         const url = `${CONSTANTS.BASE_URL}/24/player/${assetId}`;
         const players = await this.searchViaSSR(url);
         return players[0] || null;
