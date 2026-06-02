@@ -12,6 +12,8 @@
     "latest": "ts-node src/index.ts latest",
     "rating": "ts-node src/index.ts rating",
     "export": "ts-node src/index.ts export",
+    "sync": "ts-node src/index.ts sync",
+    "revert-sync": "ts-node src/index.ts revert-sync",
     "update-dict": "ts-node src/scripts/updateDictionary.ts",
     "update-tree": "ts-node src/scripts/extractSkillTree.ts",
     "lint": "eslint . --ext .ts"

@@ -135,14 +135,115 @@ program
   });
 
 program
+  .command('revert-sync')
+  .description('Revert the database changes made by the last sync command')
+  .action(async () => {
+    try {
+      const backupPath = './latest_sync_rollback.json';
+      if (!fs.existsSync(backupPath)) {
+        logger.warn('No rollback file found. Nothing to revert.');
+        return;
+      }
+      const idsToDelete = JSON.parse(fs.readFileSync(backupPath, 'utf8'));
+      if (idsToDelete.length === 0) {
+        logger.info('Rollback file is empty. Nothing to revert.');
+        return;
+      }
+      logger.info(`Reverting ${idsToDelete.length} players from the last sync...`);
+      await dbService.deletePlayers(idsToDelete);
+      fs.unlinkSync(backupPath);
+      await dbService.disconnect();
+      logger.info('Revert complete.');
+    } catch (error: any) {
+      logger.error(`Revert failed: ${error.message}`);
+    }
+  });
+
+program
   .command('sync')
   .description('Sync latest cards to PostgreSQL')
-  .option('-s, --size <number>', 'Number of cards to sync', '100')
+  .option('-s, --size <number>', 'Number of cards to sync in single batch', '40')
+  .option('-a, --audit', 'Run a deep audit to find missing cards')
   .action(async (options) => {
     try {
       await dbService.initSchema();
-      const players = await searchService.getLatestCards(parseInt(options.size));
-      await dbService.savePlayers(players);
+      const backupPath = './latest_sync_rollback.json';
+      
+      if (options.audit) {
+        logger.info('--- RUNNING DEEP AUDIT ---');
+        // Fetch all asset IDs from DB
+        const existingIds = await dbService.getAllAssetIds();
+        logger.info(`Found ${existingIds.size} existing players in database.`);
+        
+        // Let's assume there's ~30000 players max right now.
+        // To do a true deep audit, we'd fetch all from API, but for safety, we'll fetch latest X.
+        const totalToAudit = 20000; 
+        const BATCH_SIZE = 100;
+        let missingPlayers = [];
+        
+        for(let offset = 0; offset < totalToAudit; offset += BATCH_SIZE) {
+          logger.info(`Auditing offset ${offset}...`);
+          // Note: using searchService.search with 'from'
+          const players = await searchService.search({ sortBy: 'added', sortOrder: 'desc', from: offset, size: BATCH_SIZE });
+          if (players.length === 0) break;
+          
+          for (const p of players) {
+            if (!existingIds.has(p.assetId)) {
+              missingPlayers.push(p);
+            }
+          }
+          // We can break early if we feel like it, but audit is deep.
+        }
+        
+        logger.info(`Audit complete. Found ${missingPlayers.length} missing players.`);
+        if (missingPlayers.length > 0) {
+           await dbService.savePlayers(missingPlayers);
+           fs.writeFileSync(backupPath, JSON.stringify(missingPlayers.map(p => p.assetId)));
+        }
+        
+      } else {
+        logger.info('--- RUNNING BOOKMARK SYNC ---');
+        const latestId = await dbService.getLatestAssetId();
+        logger.info(`Latest Asset ID in DB: ${latestId || 'None'}`);
+        
+        let offset = 0;
+        let keepFetching = true;
+        const BATCH_SIZE = 40;
+        let newlyInserted: number[] = [];
+        
+        while (keepFetching) {
+          const players = await searchService.search({ sortBy: 'added', sortOrder: 'desc', from: offset, size: BATCH_SIZE });
+          if (players.length === 0) break;
+          
+          // Actually, let's just fetch existing IDs to be completely safe during bookmark sync
+          const existingIds = await dbService.getAllAssetIds();
+          const missing = players.filter(p => !existingIds.has(p.assetId));
+          
+          if (missing.length === 0) {
+            logger.info('Caught up to existing database records. Stopping.');
+            break;
+          }
+          
+          await dbService.savePlayers(missing);
+          newlyInserted.push(...missing.map(p => p.assetId));
+          offset += BATCH_SIZE;
+        }
+        
+        if (newlyInserted.length > 0) {
+           fs.writeFileSync(backupPath, JSON.stringify(newlyInserted));
+        }
+      }
+      
+      if (needsDictionaryUpdate) {
+        logger.info('Detected unknown traits/celebrations. Triggering auto-heal for dictionary...');
+        await runCommand('npm run update-dict');
+      }
+      await healMissingSkills(missingSkillsToHeal);
+      if (missingCelebrationsToHeal.length > 0) {
+        const { healMissingCelebrations } = require('./scripts/healTraits');
+        await healMissingCelebrations(missingCelebrationsToHeal);
+      }
+      
       await dbService.disconnect();
     } catch (error: any) {
       logger.error(`Sync failed: ${error.message}`);
