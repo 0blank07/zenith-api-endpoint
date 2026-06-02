@@ -42,7 +42,8 @@ async function updateDictionary() {
 
     // 3. Extract mappings
     const extracted: Record<string, string> = {};
-    const mapRegex = /(NAME_SKILL_\d+|skillmove_name_\d+|trait_name_\d+):([a-zA-Z0-9_$]+)/g;
+    // Broaden regex to find more patterns
+    const mapRegex = /(NAME_SKILL_\d+|skillmove_name_\d+|trait_name_\d+|celebration_name_\d+)\s*[:=]\s*([a-zA-Z0-9_$]+)/g;
     let match;
     let newItemsCount = 0;
 
@@ -51,7 +52,8 @@ async function updateDictionary() {
       const dispatcherVar = match[2];
       
       const dispatcherEscaped = dispatcherVar.replace(/\$/g, '\\$');
-      const dispatchRegex = new RegExp(dispatcherEscaped + '\\s*=\\s*\\(.*?r==="en-US"\\?([a-zA-Z0-9_$]+)\\(\\):');
+      // Updated regex to handle different minification patterns
+      const dispatchRegex = new RegExp(dispatcherEscaped + '\\s*=\\s*(?:\\(.*?r==="en-US"\\?\\s*([a-zA-Z0-9_$]+)\\(\\)|(?:function\\s*\\(.*?\\)\\s*{.*?return\\s*["\']([^"\']+)["\']))');
       const dispatchMatch = dispatchRegex.exec(giantJs);
       
       if (dispatchMatch) {

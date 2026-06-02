@@ -76,9 +76,40 @@ const SKILL_MOVE_NAMES: Record<number, string> = {
 };
 
 /**
+ * CELEBRATION DATABASE
+ * Hardcoded list of known FC Mobile celebration IDs to names.
+ */
+const CELEBRATIONS: Record<number, string> = {
+  2: 'Embrace / Default',
+  3: 'Chest Slide',
+  5: 'Point to Crowd',
+  11: 'Bow',
+  21: 'Heart',
+  25: 'Belli-goal (Arms Out)', // Often used for Modric/Bellingham
+  27: 'One Arm Raised', // Best
+  28: 'Knee Slide',
+  29: 'Slide Salute',
+  32: 'Fist Pump', // Dimarco/Makelele
+  40: 'Spanish Archer / Carlos Signature', // Roberto Carlos
+  43: 'Hand Spring', // Hamsik
+  44: 'Kneel and Point to Heavens', // Rice/Eto'o
+  47: 'Calm Down', // van Basten/Vanderson
+  51: 'Dance', // Olise
+  60: 'Arms Crossed', // Mbappe
+  62: 'Boxing', // Rooney
+  64: 'Robot', // Zanetti
+  67: 'Matador', // Blanc
+  70: 'Meditation (Zen)', // Haaland
+  85: 'Siuuu! / Right Here Right Now', // C. Ronaldo
+  86: 'Arms Crossed (Alt)', // Mbappe
+  87: 'Point to Sky' // Messi
+};
+
+
+/**
  * CLEANING LOGIC
  */
-export function cleanName(name: string, id?: number, type?: 'club' | 'league' | 'nation' | 'program' | 'skill_move'): string {
+export function cleanName(name: string, id?: number, type?: 'club' | 'league' | 'nation' | 'program' | 'skill_move' | 'celebration'): string {
   if (!name) return 'Unknown';
 
   // 1. Check Dictionaries First
@@ -87,6 +118,7 @@ export function cleanName(name: string, id?: number, type?: 'club' | 'league' | 
     if (type === 'league' && LEAGUES[id]) return LEAGUES[id];
     if (type === 'club' && CLUBS[id]) return CLUBS[id];
     if (type === 'skill_move' && SKILL_MOVE_NAMES[id]) return SKILL_MOVE_NAMES[id];
+    if (type === 'celebration' && CELEBRATIONS[id]) return CELEBRATIONS[id];
   }
 
   // Check Master RenderZ Dictionary
@@ -100,18 +132,37 @@ export function cleanName(name: string, id?: number, type?: 'club' | 'league' | 
     if (!isNaN(moveId) && SKILL_MOVE_NAMES[moveId]) return SKILL_MOVE_NAMES[moveId];
   }
 
+  // Handle Celebration IDs embedded in name strings
+  if (name.toLowerCase().includes('celebration_name_')) {
+    const celebId = parseInt(name.replace(/celebration_name_/gi, ''));
+    if (!isNaN(celebId) && CELEBRATIONS[celebId]) return CELEBRATIONS[celebId];
+  }
+
   // Fallback for raw IDs being passed as names
-  if (!isNaN(parseInt(name)) && SKILL_MOVE_NAMES[parseInt(name)]) {
-    return SKILL_MOVE_NAMES[parseInt(name)];
+  if (!isNaN(parseInt(name))) {
+    const numericId = parseInt(name);
+    if (type === 'skill_move' || name.toLowerCase().includes('skill')) return `Skill Move ${numericId}`;
+    if (type === 'celebration' || name.toLowerCase().includes('celebration')) return CELEBRATIONS[numericId] || `Celebration ${numericId}`;
+    if (SKILL_MOVE_NAMES[numericId]) return SKILL_MOVE_NAMES[numericId];
   }
   
   if (type === 'program' && PROGRAMS[name]) return PROGRAMS[name];
 
   // 2. Regex Cleaning (Strip Prefixes)
-  return name
-    .replace(/^(TeamName_|LeagueName_|NationName_|PROGRAM_|NAME_SKILL_|trait_name_|skillmove_name_|skill_move_)/i, '')
+  const cleaned = name
+    .replace(/^(TeamName_|LeagueName_|NationName_|PROGRAM_|NAME_SKILL_|trait_name_|skillmove_name_|skill_move_|celebration_name_)/i, '')
     .replace(/_/g, ' ')
     .trim();
+
+  // If after cleaning we only have a number, give it context
+  if (!isNaN(parseInt(cleaned)) && cleaned.length > 0) {
+    const numCleaned = parseInt(cleaned);
+    if (name.toLowerCase().includes('celebration')) return CELEBRATIONS[numCleaned] || `Celebration ${cleaned}`;
+    if (name.toLowerCase().includes('skill')) return `Skill Move ${cleaned}`;
+    if (name.toLowerCase().includes('trait')) return `Trait ${cleaned}`;
+  }
+
+  return cleaned;
 }
 
 /**
@@ -187,6 +238,15 @@ const TRAITS: Record<number, string> = {
 };
 
 export function getTraitTitle(id: number, rawTitle: string): string {
+  // Check for Celebration Offset (Added by SearchService)
+  if (id >= 200000) {
+    const celebrationId = id - 200000;
+    if (CELEBRATIONS[celebrationId]) return CELEBRATIONS[celebrationId];
+    const title = RENDERZ_DICTIONARY[`celebration_name_${celebrationId}`];
+    if (title) return title;
+    return cleanName(rawTitle || `celebration_name_${celebrationId}`, celebrationId, 'celebration');
+  }
+
   if (/^traits?[_ ]title[_ ]\d+$/i.test(rawTitle)) {
     return TRAITS[id] || cleanName(rawTitle);
   }
@@ -248,10 +308,9 @@ export function getSkillTitle(id: number, rawName: string, iconUrl?: string): st
   if ((cleaned === rawName || !isNaN(parseInt(cleaned))) && iconUrl) {
     const urlMatch = iconUrl.match(/skill_S10_([A-Z_]+)_\d+/i) || iconUrl.match(/skill_([A-Z_]+)_\d+/i);
     if (urlMatch) {
-        return urlMatch[1].replace(/_/g, ' ').split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ');
+        return urlMatch[1].replace(/_/g, ' ').split(' ').map((w: string) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ');
     }
   }
   
   return cleaned;
 }
-

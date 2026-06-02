@@ -23,6 +23,7 @@ const dbService = new PostgresService();
 
 // Global collector for self-healing
 const missingSkillsToHeal: MissingSkill[] = [];
+let needsDictionaryUpdate = false;
 
 program
   .name('renderz-cli')
@@ -38,6 +39,10 @@ program
     try {
       const players = await searchService.searchByName(options.name, parseInt(options.size));
       displayPlayers(players);
+      if (needsDictionaryUpdate) {
+        logger.info('Detected unknown traits/celebrations. Triggering auto-heal for dictionary...');
+        await runCommand('npm run update-dict');
+      }
       await healMissingSkills(missingSkillsToHeal);
     } catch (error: any) {
       logger.error(`Search failed: ${error.message}`);
@@ -52,11 +57,25 @@ program
     try {
       const players = await searchService.getLatestCards(parseInt(options.size));
       displayPlayers(players);
+      if (needsDictionaryUpdate) {
+        logger.info('Detected unknown traits/celebrations. Triggering auto-heal for dictionary...');
+        await runCommand('npm run update-dict');
+      }
       await healMissingSkills(missingSkillsToHeal);
     } catch (error: any) {
       logger.error(`Failed to get latest cards: ${error.message}`);
     }
   });
+
+async function runCommand(command: string) {
+  const { exec } = require('child_process');
+  return new Promise((resolve) => {
+    exec(command, (error: any, stdout: any, stderr: any) => {
+      if (error) logger.error(`Command failed: ${command} - ${error.message}`);
+      resolve(stdout);
+    });
+  });
+}
 
 program
   .command('rating')

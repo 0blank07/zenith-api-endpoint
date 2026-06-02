@@ -56,8 +56,8 @@ export class SearchService {
       }
 
       if (capturedData.length > 0) {
-          // Normalize intercepted data
-          return capturedData.map((p: any) => this.normalizePlayer(p));
+          // Normalize intercepted data and merge in traits rendered on the player detail page
+          return capturedData.map((p: any) => this.normalizePlayer(p, renderedTraits));
       }
 
       // Fallback: Try rehydrating from __data.json
@@ -144,6 +144,7 @@ export class SearchService {
       name: s.skill.name,
       image: s.skill.image
     })) : []);
+    const supplementalTraits = this.extractSupplementalTraits(raw);
 
     return {
       ...raw,
@@ -156,7 +157,7 @@ export class SearchService {
       league: raw.league || { name: raw.leagueName || 'Unknown', id: this.extractLinkedId(raw.leagueLink) },
       nation: raw.nation || { name: raw.nationName || 'Unknown', id: this.extractLinkedId(raw.nationLink) },
       skillStyleSkills,
-      traits: this.mergeTraits(raw.traits, renderedTraits),
+      traits: this.mergeTraits(this.mergeTraits(raw.traits, supplementalTraits), renderedTraits),
       skillMovesLevel: typeof raw.skillMovesLevel === 'number' ? raw.skillMovesLevel : parseInt(raw.skillMoves?.stars?.toString().match(/\d+/)?.[0] || '3')
     };
   }
@@ -196,6 +197,36 @@ export class SearchService {
     return merged;
   }
 
+  private extractSupplementalTraits(raw: any): Player['traits'] {
+    const supplemental: Array<{ id: number; title: string; description: string; image: string } | null> = [
+      this.normalizeSupplementalTrait(raw?.skillMoves, 'skillmovelogo_23_', 100000),
+      this.normalizeSupplementalTrait(raw?.celebration, 'celebrationlogo_23_', 200000)
+    ];
+
+    return supplemental
+      .filter((trait): trait is { id: number; title: string; description: string; image: string } => trait !== null);
+  }
+
+  private normalizeSupplementalTrait(
+    trait: any,
+    imageToken: 'skillmovelogo_23_' | 'celebrationlogo_23_',
+    idOffset: number
+  ): { id: number; title: string; description: string; image: string } | null {
+    const image = typeof trait?.image === 'string' ? trait.image : '';
+    if (!image.includes(imageToken)) return null;
+
+    const imageId = Number(image.match(new RegExp(`${imageToken}(\\d+)`))?.[1]);
+    const sourceId = Number.isFinite(Number(trait?.id)) ? Number(trait.id) : imageId;
+    if (!Number.isFinite(sourceId)) return null;
+
+    return {
+      id: idOffset + sourceId,
+      title: typeof trait?.title === 'string' && trait.title.trim().length > 0 ? trait.title : `${imageToken}${sourceId}`,
+      description: typeof trait?.description === 'string' && trait.description.trim().length > 0 ? trait.description : '',
+      image
+    };
+  }
+
   private normalizeTraits(traits: unknown): Player['traits'] {
     if (!Array.isArray(traits)) return [];
 
@@ -226,48 +257,69 @@ export class SearchService {
 
   private async extractRenderedTraits(page: any): Promise<Player['traits'] | null> {
     try {
-      await page.waitForSelector('img[src*="traitlogo_23_"]', { timeout: 10000 }).catch(() => null);
+      const renderedTraitsSelector = '.flex.gap-2.w-full.flex-wrap.justify-center.pb-4';
+      await page.waitForSelector(renderedTraitsSelector, { timeout: 10000 }).catch(() => null);
+      await page.waitForSelector(`${renderedTraitsSelector} img.relative.z-0.h-auto.max-w-full`, { timeout: 10000 }).catch(() => null);
       await page.waitForFunction(() => {
-        const traitCards = Array.from(document.querySelectorAll('img[src*="traitlogo_23_"]'))
-          .map((image) => image.closest('.grid-auto-rows > div') ?? image.closest('div'))
-          .filter(Boolean) as Element[];
+        const container = document.querySelector('.flex.gap-2.w-full.flex-wrap.justify-center.pb-4');
+        if (!container) return true;
 
-        if (traitCards.length === 0) return true;
+        const cards = Array.from(container.querySelectorAll(':scope > div'));
+        if (cards.length === 0) return true;
 
-        return traitCards.every((card) => {
-          const spans = Array.from(card.querySelectorAll('span'));
-          const title = spans
-            .map((span) => span.textContent?.replace(/\s+/g, ' ').trim() || '')
-            .reverse()
-            .find((text) => text.length > 0 && !/^traits?[_ ]title[_ ]\d+$/i.test(text)) || '';
-          return title.length > 0 && !/^traits?[_ ]title[_ ]\d+$/i.test(title);
+        return cards.some((card) => {
+          const image = card.querySelector('img.relative.z-0.h-auto.max-w-full') ?? card.querySelector('img');
+          if (!image) return false;
+          const src = image.getAttribute('src') || '';
+          if (!/(traitlogo_23_|skillmovelogo_23_|celebrationlogo_23_)/.test(src)) return false;
+          const text = card.textContent?.replace(/\s+/g, ' ').trim() || '';
+          return text.length > 0;
         });
       }, { timeout: 10000 }).catch(() => null);
 
       return await page.evaluate(() => {
-        const cards = Array.from(document.querySelectorAll('img[src*="traitlogo_23_"]'))
-          .map((image) => image.closest('.grid-auto-rows > div') ?? image.closest('div'))
-          .filter(Boolean) as Element[];
+        const container = document.querySelector('.flex.gap-2.w-full.flex-wrap.justify-center.pb-4');
+        if (!container) return null;
+
+        const cards = Array.from(container.querySelectorAll(':scope > div'))
+          .filter((card) => {
+            const image = card.querySelector('img.relative.z-0.h-auto.max-w-full') ?? card.querySelector('img');
+            if (!image) return false;
+            const src = image.getAttribute('src') || '';
+            return /(traitlogo_23_|skillmovelogo_23_|celebrationlogo_23_)/.test(src);
+          });
         if (cards.length === 0) return null;
 
         return cards
-          .map((card: Element) => {
-            const image = card.querySelector('img')?.getAttribute('src') || '';
-            const match = image.match(/traitlogo_23_(\d+)/);
-            if (!match) return null;
+          .map((card: Element, index: number) => {
+            const imageElement = card.querySelector('img.relative.z-0.h-auto.max-w-full') ?? card.querySelector('img');
+            const image = imageElement?.getAttribute('src') || '';
+            const imageMatch = image.match(/(traitlogo_23_|skillmovelogo_23_|celebrationlogo_23_)(\d+)/);
 
             const spans = Array.from(card.querySelectorAll('span'));
             const visibleTitle = spans
               .map((span) => span.textContent?.replace(/\s+/g, ' ').trim() || '')
-              .reverse()
               .find((text) => text.length > 0 && !/^traits?[_ ]title[_ ]\d+$/i.test(text));
-            const title = visibleTitle
-              ? visibleTitle
-              : `trait_name_${match[1]}`;
+            const fallbackTitle = card.textContent?.replace(/\s+/g, ' ').trim() || '';
+            const titleText = visibleTitle || fallbackTitle;
+
+            let id = 300000 + index;
+            if (imageMatch) {
+              const prefix = imageMatch[1];
+              const imageId = Number(imageMatch[2]);
+              if (prefix === 'traitlogo_23_') {
+                id = imageId;
+              } else if (prefix === 'skillmovelogo_23_') {
+                id = 100000 + imageId;
+              } else if (prefix === 'celebrationlogo_23_') {
+                id = 200000 + imageId;
+              }
+            }
+
             return {
-              id: Number(match[1]),
-              title,
-              description: `trait_desc_${match[1]}`,
+              id,
+              title: titleText || `trait_name_${id}`,
+              description: `trait_desc_${id}`,
               image
             };
           })
@@ -464,17 +516,48 @@ export class SearchService {
     }
   }
 
+  private async getRenderedTraitsForAsset(assetId: number): Promise<Player['traits'] | null> {
+    const { chromium } = require('playwright-extra');
+    const stealthPlugin = require('puppeteer-extra-plugin-stealth');
+    chromium.use(stealthPlugin());
+
+    const browser = await chromium.launch({ headless: process.env.HEADLESS !== 'false' });
+    const page = await browser.newPage();
+
+    try {
+      await page.goto(`${CONSTANTS.BASE_URL}/24/player/${assetId}`, { waitUntil: 'domcontentloaded', timeout: 90000 });
+      return await this.extractRenderedTraits(page);
+    } catch (error: any) {
+      logger.warn(`Could not fetch rendered traits for ${assetId}: ${error.message}`);
+      return null;
+    } finally {
+      await browser.close();
+    }
+  }
+
+  private async enrichPlayerTraitsFromRenderedCard(player: Player, assetId: number): Promise<Player> {
+    const renderedTraits = await this.getRenderedTraitsForAsset(assetId);
+    if (!renderedTraits || renderedTraits.length === 0) return player;
+
+    return {
+      ...player,
+      traits: this.mergeTraits(player.traits, renderedTraits)
+    };
+  }
+
   async getByAssetId(assetId: number): Promise<Player | null> {
     const payload = { query: { bool: { must: [{ match: { assetId } }], should: [], must_not: [] } }, from: 0, size: 1, _source: [] };
     try {
       const response = await this.client.post<SearchResponse>(CONSTANTS.SEARCH_ENDPOINT, payload);
       const player = response.players[0];
-      return player ? this.normalizePlayer(player) : null;
+      if (!player) return null;
+      const normalized = this.normalizePlayer(player);
+      return await this.enrichPlayerTraitsFromRenderedCard(normalized, assetId);
     } catch (error: any) {
       if (error.message.includes('SESSION_BLOCKED') || error.message.includes('403')) {
         logger.warn(`Detail blocked. Fetching SSR for player ${assetId}...`);
         const apiPlayer = await this.getByAssetIdViaSSRSearch(assetId);
-        if (apiPlayer) return apiPlayer;
+        if (apiPlayer) return await this.enrichPlayerTraitsFromRenderedCard(apiPlayer, assetId);
 
         const url = `${CONSTANTS.BASE_URL}/24/player/${assetId}`;
         const players = await this.searchViaSSR(url);
