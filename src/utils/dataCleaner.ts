@@ -80,6 +80,48 @@ const SKILL_MOVE_NAMES: Record<number, string> = {
  * Hardcoded list of known FC Mobile celebration IDs to names.
  */
 const CELEBRATIONS: Record<number, string> = {
+  81: 'Embrace',
+  80: 'Think',
+  79: 'Slide and Cheer',
+  74: 'Yoga',
+  69: 'Square',
+  61: 'Celebration 61',
+  58: 'X',
+  57: 'Scorpion',
+  55: 'Cell Phone',
+  54: 'Baby',
+  52: 'Point to Sky',
+  50: 'Right Here Right Now',
+  78: 'Samba',
+  68: 'Waddle',
+  66: 'Timber',
+  63: 'Stand Tall',
+  56: 'Kiss the Ring',
+  48: 'Thigh Point',
+  46: 'Walking Backflip',
+  45: 'Violinist',
+  42: 'Torero',
+  41: 'Standing Arm Sweep',
+  39: 'Stand and Point to Sky',
+  38: 'Spanish Archer',
+  37: 'Side Slide',
+  36: 'Shoulder Dust',
+  34: 'Samba Dance',
+  31: 'Robot',
+  30: 'Punch and Dodge',
+  24: 'Knee Slide Spin',
+  23: 'Knee Slide Fall on Back',
+  22: 'Knee Slide Arms Out',
+  20: 'Jump Punch to Fist Pump',
+  19: 'I Can\'t Hear You',
+  18: 'Heel Taps',
+  15: 'Hand Spring',
+  14: 'Front Flip',
+  13: 'Push-Up',
+  10: 'Chest Slide',
+  9: 'Karate Kick',
+  7: 'Cart Wheel',
+  6: 'Brick Fall',
   2: 'Embrace / Default',
   3: 'Chest Slide',
   5: 'Point to Crowd',
@@ -102,7 +144,8 @@ const CELEBRATIONS: Record<number, string> = {
   70: 'Meditation (Zen)', // Haaland
   85: 'Siuuu! / Right Here Right Now', // C. Ronaldo
   86: 'Arms Crossed (Alt)', // Mbappe
-  87: 'Point to Sky' // Messi
+  87: 'Point to Sky', // Messi
+  8: 'Cart Wheel and Flip'
 };
 
 

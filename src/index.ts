@@ -24,6 +24,7 @@ const dbService = new PostgresService();
 // Global collector for self-healing
 const missingSkillsToHeal: MissingSkill[] = [];
 let needsDictionaryUpdate = false;
+const missingCelebrationsToHeal: { assetId: number; celebrationId: number }[] = [];
 
 program
   .name('renderz-cli')
@@ -44,6 +45,10 @@ program
         await runCommand('npm run update-dict');
       }
       await healMissingSkills(missingSkillsToHeal);
+      if (missingCelebrationsToHeal.length > 0) {
+        const { healMissingCelebrations } = require('./scripts/healTraits');
+        await healMissingCelebrations(missingCelebrationsToHeal);
+      }
     } catch (error: any) {
       logger.error(`Search failed: ${error.message}`);
     }
@@ -62,6 +67,10 @@ program
         await runCommand('npm run update-dict');
       }
       await healMissingSkills(missingSkillsToHeal);
+      if (missingCelebrationsToHeal.length > 0) {
+        const { healMissingCelebrations } = require('./scripts/healTraits');
+        await healMissingCelebrations(missingCelebrationsToHeal);
+      }
     } catch (error: any) {
       logger.error(`Failed to get latest cards: ${error.message}`);
     }
@@ -209,7 +218,19 @@ function displayPlayerDetail(player: Player) {
   console.log(`\n[ TRAITS ]`);
   if (traits.length > 0) {
     traits.forEach(t => {
-      console.log(`- ${getTraitTitle(t.id, t.title)} [${t.image}]`);
+      const title = getTraitTitle(t.id, t.title);
+      // If title contains "Celebration" or "Trait" followed by a number, it means it was a fallback
+      if (/(Celebration|Trait|Skill Move) \d+/.test(title)) {
+        needsDictionaryUpdate = true;
+        const match = title.match(/Celebration (\d+)/);
+        if (match) {
+            missingCelebrationsToHeal.push({
+                assetId: player.assetId,
+                celebrationId: parseInt(match[1])
+            });
+        }
+      }
+      console.log(`- ${title} [${t.image}]`);
     });
   } else {
     console.log(`- No specialized traits listed`);
