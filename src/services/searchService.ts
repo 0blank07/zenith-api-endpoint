@@ -413,7 +413,6 @@ export class SearchService {
                 body: JSON.stringify({
                   query: { bool: { must: [], should: [], must_not: [] } }, // Simple query for latest
                   sort: [ { [options.sortBy || 'rating']: { order: options.sortOrder || 'desc' } }, { assetId: { order: 'desc' } } ],
-                  _source: [],
                   from: offset,
                   size: 40
                 })
