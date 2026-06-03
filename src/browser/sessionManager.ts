@@ -104,44 +104,28 @@ export class SessionManager {
       }
 
       // TRIGGER SEARCH OVERLAY
-      logger.info('Triggering search overlay...');
-      // Try multiple ways to find the search button
-      const searchToggle = page.locator('header button').filter({ has: page.locator('img, svg') }).first();
-      if (await searchToggle.isVisible()) {
-        await searchToggle.click({ force: true });
-        await page.waitForTimeout(2000);
-      } else {
-        logger.warn('Search toggle not visible in header, trying alternate buttons...');
+      logger.info('Attempting to trigger search...');
+      try {
+        // Find any input on the page and force interaction
         await page.evaluate(() => {
-          const btns = Array.from(document.querySelectorAll('button'));
-          const b = btns.find(x => x.innerHTML.includes('svg') || x.innerHTML.includes('img'));
-          if (b) b.click();
-        });
-        await page.waitForTimeout(2000);
-      }
-
-      // TYPE DUMMY QUERY
-      const input = page.locator('input[placeholder*="Search"]').first();
-      if (await input.isVisible()) {
-        logger.info('Input found. Typing dummy query...');
-        await input.fill('Messi');
-        await page.keyboard.press('Enter');
-        await page.waitForTimeout(3000);
-      } else {
-        logger.warn('Search input not found or not visible. Forcing API call via fetch...');
-        // Force an API call in the browser context to trigger the token interceptors
-        await page.evaluate(async () => {
-            try {
-                await fetch('https://renderz.app/api/search/elasticsearch', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ query: { bool: { must: [] } }, size: 1 })
-                });
-            } catch (e) {
-                // Ignore fetch errors, we just want the interceptor to catch the headers
+            const inputs = Array.from(document.querySelectorAll('input'));
+            if (inputs.length > 0) {
+                // Focus the first input, usually the search bar
+                inputs[0].focus();
+                // If there's a specific search button, click it
+                const btns = Array.from(document.querySelectorAll('button'));
+                const searchBtn = btns.find(b => b.textContent && b.textContent.toLowerCase().includes('search'));
+                if (searchBtn) searchBtn.click();
             }
         });
+        
+        await page.waitForTimeout(1000);
+        await page.keyboard.type('Messi', { delay: 100 });
+        await page.keyboard.press('Enter');
+        logger.info('Typed dummy query into DOM.');
         await page.waitForTimeout(3000);
+      } catch (err) {
+        logger.warn('Failed to force interaction via DOM evaluation.');
       }
 
       // Final Check & LocalStorage / Svelte Fallback
