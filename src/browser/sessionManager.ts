@@ -84,8 +84,20 @@ export class SessionManager {
 
       // The live app uses season-specific URLs like /24/players or /25/players
       logger.info(`Navigating to ${CONSTANTS.BASE_URL}/24/players ...`);
-      await page.goto(`${CONSTANTS.BASE_URL}/24/players`, { waitUntil: 'commit', timeout: 60000 });
+      await page.goto(`${CONSTANTS.BASE_URL}/24/players`, { waitUntil: 'domcontentloaded', timeout: 60000 });
       
+      // Wait for Cloudflare Turnstile to pass by looking for a known RenderZ UI element
+      logger.info('Waiting for Cloudflare challenge to resolve or page to load...');
+      try {
+          // Wait for either the search input, or the players list to appear, meaning CF is passed
+          await page.waitForSelector('input[placeholder*="Search"], a:has-text("Players")', { timeout: 20000 });
+          logger.info('Cloudflare challenge passed / Main page loaded.');
+      } catch (e) {
+          logger.warn('Page did not load recognizable RenderZ elements within 20s. Might be stuck on Cloudflare.');
+          // Take a screenshot for debugging if possible
+          // await page.screenshot({ path: 'cf_stuck.png' });
+      }
+
       await page.waitForTimeout(3000);
 
       // Dismiss "Mobile App Prompt" if it appears
