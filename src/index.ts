@@ -192,43 +192,53 @@ program
   .command('sync')
   .description('Sync latest cards to PostgreSQL')
   .option('-s, --size <number>', 'Number of cards to sync in single batch', '40')
-  .option('-a, --audit', 'Run a deep audit to find missing cards')
+  .option('-a, --audit', 'Run a deep audit by scanning latest X cards')
+  .option('-m, --missing', 'Perform a full scan and sync all missing players')
   .action(async (options) => {
     try {
       await dbService.initSchema();
       const backupPath = './latest_sync_rollback.json';
       
-      if (options.audit) {
-        logger.info('--- RUNNING DEEP AUDIT ---');
-        // Fetch all asset IDs from DB
+      if (options.missing) {
+        logger.info('--- RUNNING FULL DISCOVERY SYNC ---');
+        // 1. Fetch ALL IDs from RenderZ (High Speed Scan)
+        const renderzIds = await searchService.getAllAssetIds();
+        
+        // 2. Fetch ALL IDs from DB
         const existingIds = await dbService.getAllAssetIds();
-        logger.info(`Found ${existingIds.size} existing players in database.`);
         
-        const totalToAudit = parseInt(options.size) || 20000; 
-        const BATCH_SIZE = 100;
-        let missingPlayers = [];
-        
-        for(let offset = 0; offset < totalToAudit; offset += BATCH_SIZE) {
-          logger.info(`Auditing offset ${offset}...`);
-          // Note: using searchService.search with 'from'
-          const players = await searchService.search({ sortBy: 'added', sortOrder: 'desc', from: offset, size: BATCH_SIZE });
-          if (players.length === 0) break;
-          
-          for (const p of players) {
-            if (!existingIds.has(p.assetId)) {
-              missingPlayers.push(p);
+        // 3. Find IDs that exist on RenderZ but not in DB
+        const missingIds = renderzIds.filter(id => !existingIds.has(id));
+        logger.info(`Full Scan Results: RenderZ has ${renderzIds.length} players. DB has ${existingIds.size} players.`);
+        logger.info(`Identified ${missingIds.length} missing players.`);
+
+        if (missingIds.length === 0) {
+            logger.info('Database is already perfectly in sync with RenderZ.');
+            return;
+        }
+
+        // 4. Scrape and sync missing players in batches
+        const newlyInserted = [];
+        const BATCH_SIZE = 40;
+        for (let i = 0; i < missingIds.length; i += BATCH_SIZE) {
+            const batch = missingIds.slice(i, i + BATCH_SIZE);
+            logger.info(`Syncing missing batch ${i / BATCH_SIZE + 1} of ${Math.ceil(missingIds.length / BATCH_SIZE)}...`);
+            
+            const players = [];
+            for (const id of batch) {
+                const player = await searchService.getByAssetId(id);
+                if (player) players.push(player);
             }
-          }
-          // We can break early if we feel like it, but audit is deep.
+            
+            if (players.length > 0) {
+                await dbService.savePlayers(players);
+                newlyInserted.push(...players.map(p => p.assetId));
+            }
         }
-        
-        logger.info(`Audit complete. Found ${missingPlayers.length} missing players.`);
-        if (missingPlayers.length > 0) {
-           await dbService.savePlayers(missingPlayers);
-           fs.writeFileSync(backupPath, JSON.stringify(missingPlayers.map(p => p.assetId)));
-        }
-        
-      } else {
+        fs.writeFileSync(backupPath, JSON.stringify(newlyInserted));
+        logger.info('Full Discovery Sync complete.');
+
+      } else if (options.audit) {
         logger.info('--- RUNNING BOOKMARK SYNC ---');
         const latestId = await dbService.getLatestAssetId();
         logger.info(`Latest Asset ID in DB: ${latestId || 'None'}`);

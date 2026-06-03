@@ -138,6 +138,133 @@ export class SearchService {
     }
   }
 
+  async getAllAssetIds(): Promise<number[]> {
+    const fetchIdsBatch = async (from: number, size: number, tokens?: any) => {
+        const body = {
+            query: { bool: { must: [], should: [], must_not: [] } },
+            _source: ["assetId"],
+            sort: [{ assetId: { order: "desc" } }],
+            from: from,
+            size: size
+        };
+        
+        if (tokens) {
+            // Using browser fetch context
+            return await this.fetchInBrowser(CONSTANTS.SEARCH_ENDPOINT, body, tokens);
+        } else {
+            // Using direct axios client
+            return await this.client.post(CONSTANTS.SEARCH_ENDPOINT, body);
+        }
+    };
+
+    logger.info('Fetching all Asset IDs from RenderZ (High Speed Scan)...');
+    try {
+      const allIds: number[] = [];
+      const BATCH_SIZE = 1000;
+      let from = 0;
+      let total = 30000;
+
+      while (from < total) {
+        const response: any = await fetchIdsBatch(from, BATCH_SIZE);
+        if (response.players && response.players.length > 0) {
+           const batch = response.players.map((p: any) => p.assetId);
+           allIds.push(...batch);
+           from += BATCH_SIZE;
+           if (response.total) total = response.total;
+        } else break;
+      }
+      logger.info(`Scan complete. Found ${allIds.length} players on RenderZ.`);
+      return allIds;
+    } catch (error: any) {
+      if (error.message.includes('SESSION_BLOCKED') || error.message.includes('403')) {
+        logger.warn('Direct scan blocked. Entering Browser-based ID Discovery...');
+        return await this.getAllAssetIdsViaSSR();
+      }
+      logger.error(`Failed to scan all asset IDs: ${error.message}`);
+      return [];
+    }
+  }
+
+  private async fetchInBrowser(endpoint: string, body: any, tokens: any) {
+      return await fetch(endpoint, {
+          method: 'POST',
+          headers: {
+              'Content-Type': 'application/json',
+              'x-secure-token': tokens.token,
+              'x-client-fingerprint': tokens.fingerprint
+          },
+          body: JSON.stringify(body)
+      }).then(r => r.json());
+  }
+
+  private async getAllAssetIdsViaSSR(): Promise<number[]> {
+    const { chromium } = require('playwright-extra');
+    const stealthPlugin = require('puppeteer-extra-plugin-stealth');
+    chromium.use(stealthPlugin());
+
+    const browser = await chromium.launch({ headless: process.env.HEADLESS !== 'false' });
+    const page = await browser.newPage();
+    let tokens: { token: string, fingerprint: string } | null = null;
+
+    try {
+      page.on('request', (req: any) => {
+        if (tokens || !req.url().includes('elasticsearch')) return;
+        const headers = req.headers();
+        if (headers['x-secure-token'] && headers['x-client-fingerprint']) {
+          tokens = { token: headers['x-secure-token'], fingerprint: headers['x-client-fingerprint'] };
+        }
+      });
+
+      await page.goto(`${CONSTANTS.BASE_URL}/24/players`, { waitUntil: 'domcontentloaded', timeout: 60000 });
+      for (let i = 0; i < 30; i++) {
+        if (tokens) break;
+        await new Promise(r => setTimeout(r, 500));
+      }
+
+      if (!tokens) throw new Error('Failed to capture tokens for SSR Discovery');
+
+      return await page.evaluate(async (params: { tokens: any, endpoint: string }) => {
+        const results: number[] = [];
+        const { tokens, endpoint } = params;
+        let from = 0;
+        let total = 30000;
+        
+        while (from < total) {
+          const res = await fetch(endpoint, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'x-secure-token': tokens.token,
+              'x-client-fingerprint': tokens.fingerprint
+            },
+            body: JSON.stringify({
+              query: { bool: { must: [], should: [], must_not: [] } },
+              _source: ["assetId"],
+              sort: [{ assetId: { order: "desc" } }],
+              from: from,
+              size: 1000
+            })
+          });
+
+          if (!res.ok) break;
+          const json = await res.json();
+          if (!json.players || json.players.length === 0) break;
+          
+          results.push(...json.players.map((p: any) => p.assetId));
+          from += 1000;
+          if (json.total) total = json.total;
+          await new Promise(r => setTimeout(r, 100));
+        }
+        return results;
+      }, { tokens, endpoint: CONSTANTS.SEARCH_ENDPOINT });
+    } catch (error: any) {
+      logger.error(`SSR Discovery failed: ${error.message}`);
+      return [];
+    } finally {
+      await browser.close();
+    }
+  }
+
   private normalizePlayer(raw: any, renderedTraits: Player['traits'] | null = null): Player {
     const skillStyleSkills = raw.skillStyleSkills || (raw.skillsData ? raw.skillsData.map((s: any) => ({
       id: s.skill.id,
