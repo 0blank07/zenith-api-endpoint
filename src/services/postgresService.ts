@@ -51,7 +51,7 @@ export class PostgresService {
         player.assetId, // player_id
         rank, // rank
         0, // training_level
-        player.position || '', // primary_position
+        player.position || '', // position
         player.potentialPositions?.join(', ') || '', // alternate_position
         player.nation?.name || '', // nation_region
         player.skillMovesLevel || 0, // skill_moves_stars
@@ -119,7 +119,7 @@ export class PostgresService {
         player.animation?.colors?.level || '', // color_level
         player.workRateAtt || 0, // work_rate_attack
         player.workRateDef || 0, // work_rate_defense
-        player.club?.name || '', // club_name
+        player.club?.name || '', // team
         player.cardName || player.firstName || '', // name
     ];
   }
@@ -138,7 +138,7 @@ export class PostgresService {
         // --- 1. Insert into player_stats ---
         const statsQuery = `
           INSERT INTO player_stats (
-            player_id, rank, training_level, primary_position, alternate_position, nation_region,
+            player_id, rank, training_level, position, alternate_position, nation_region,
             skill_moves_stars, strong_foot_side, strong_foot_stars, weak_foot_stars, height_ft_in, height_cm, weight_kg,
             ovr, stamina_stat, pace, acceleration, sprint_speed, shooting, finishing, long_shot, shot_power, positioning,
             volley, penalties, passing, short_passing, long_passing, vision, crossing, curve, free_kick, dribbling_head,
@@ -146,7 +146,7 @@ export class PostgresService {
             awareness, heading, physical, strength, aggression, jumping, diving, gk_diving, gk_positioning, handling,
             gk_handling, reflexes, gk_reflexes, kicking, gk_kicking, is_untradable, date_added, league_image, traits_name,
             player_image, card_background, nation_flag, club_flag, color_rating, color_position, color_name, color_level,
-            work_rate_attack, work_rate_defense, club_name, name
+            work_rate_attack, work_rate_defense, team, name
           ) VALUES (
             $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24,
             $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37, $38, $39, $40, $41, $42, $43, $44, $45, $46,
