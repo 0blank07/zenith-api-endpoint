@@ -128,7 +128,20 @@ export class SessionManager {
         await page.keyboard.press('Enter');
         await page.waitForTimeout(3000);
       } else {
-        logger.warn('Search input not found or not visible.');
+        logger.warn('Search input not found or not visible. Forcing API call via fetch...');
+        // Force an API call in the browser context to trigger the token interceptors
+        await page.evaluate(async () => {
+            try {
+                await fetch('https://renderz.app/api/search/elasticsearch', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ query: { bool: { must: [] } }, size: 1 })
+                });
+            } catch (e) {
+                // Ignore fetch errors, we just want the interceptor to catch the headers
+            }
+        });
+        await page.waitForTimeout(3000);
       }
 
       // Final Check & LocalStorage Fallback
