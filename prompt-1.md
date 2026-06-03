@@ -1,75 +1,50 @@
-[ ASSETS & COLORS ]
-- OVR Color:      #FFFFFF
-- Name Color:     #FFFFFF
-- Pos Color:      #FFFFFF
-- Player Img:     https://images-v2.renderz.app/player_25_1040?verify=1779957558-Z6PKvKRnR7xk2wkpUN4XLPQmxQIe7EWfD9pqD2M%2FJ%2BA%3D
-- BG Image:       https://images-v2.renderz.app/bg_23_backgrounds_twg26_TWG26_ICON_BRAZIL_STATIC_L1?verify=1779957558-uvkkP%2FvcHN0RBG8aCygCK55wTk%2FgoCNOysqpSXWk%2BfE%3D
-- Flag Img:       https://images-v2.renderz.app/flags_23_128x128_54?verify=1779957558-QRwvr%2FKzy9uHmuWIPblkE%2FQHVaC1H%2FLRC3WcBKgkZO8%3D
-- Club Img:       https://images-v2.renderz.app/club_23_114154?verify=1779957558-2OwI5kUYvHGiVekHo393BnLuffPyS8N6kFlbXn%2F9yTw%3D
-- League Img:     https://images-v2.renderz.app/league_23_2118?verify=1779957558-5h0wwOUcgiOgCn8eamkKWiGG1NrgJMHVEY6d4MkV1EQ%3D
-
-[ IDENTITY & PROFILE ]
-- Full Name:      Roberto Carlos da Silva Rocha
-- Asset ID:       30913666 (Player ID: 1040)
-- Position:       LB
-- Alt Positions:  None
-- Height/Weight:  168 cm / 69 kg
-- Foot:           Right (WF: 2/5)
-- Work Rate:      ATT: High | DEF: High
-- Birthday:       10/4/1973
-- Club:           114154 (ID: 114154)
-- League:         Nation Story (ID: 2118)
-- Nation:         Brazil (ID: 54)
-- Program:        Unknown
-- Bio:            biotxt_24036361
-
-[ BASE STATS ]
- PAC: 126  |  SHO: 91  |  PAS: 112  |  DRI: 114  |  DEF: 139  |  PHY: 143 
-
-[ DETAILED ATTRIBUTES ]
- PACE:       Acc: 126  | Spd: 127
- SHOOTING:   Fin: 74  | ShP: 116 | Lng: 108 | Vol: 86 | Pen: 87 | Pos: 80
- PASSING:    ShP: 124  | Lng: 105 | Vis: 105 | Cro: 108 | Cur: 114 | FrK: 116
- DRIBBLING:  Dri: 97  | Agi: 104 | Bal: 124 | BaC: 121 | Rea: 146
- DEFENDING:  Mrk: 140  | StT: 145 | SlT: 146 | Hea: 113 | Awr: 146
- PHYSICAL:   Str: 145  | Agg: 144 | Jmp: 142 | Sta: 88
- TOTAL:      3331
-
-[ TRAITS ]  -> there are total 6 traits for this player card but only 4 showing:
-- Long Throw [https://images-v2.renderz.app/traitlogo_23_1?verify=1779957566-DBtMejd54jqdjp8ufMA0paonwJsHVQ7g8TvxaTYjJlc%3D]
-- Powerful Driven Free Kick [https://images-v2.renderz.app/traitlogo_23_2?verify=1779957566-qjdkf8624co2D%2Fy6JhrHNq50gWoPPn%2FIvnIUicnSdJY%3D]
-- Long Shot Taker [https://images-v2.renderz.app/traitlogo_23_16?verify=1779957566-rlfUgHzuwJzt1QRZx2V3J6SuKF%2FZ51i%2B9x%2Bq7VXwZJQ%3D]
-- Outside Foot Shot [https://images-v2.renderz.app/traitlogo_23_25?verify=1779957566-ZM59iBti1IK3oDnVKBp94H%2FTS706yLuqIUb3jYDw0PI%3D]
-
-[ SKILL MOVE REQUIREMENTS ]
-- PRIMARY:   Open Up Fake Shot
-- AVAILABLE: Open Up Fake Shot, Ball Roll, Stepover, Roulette, Heel to Heel Flick
-- LOCKED:    Lane Change (4★), Rainbow (4★), Elastico (5★), Hocus Pocus (5★)
-
-[ SKILL PROGRESSION TREE ]
-
-> SKILL: Fullback
-  Icon: https://images-v2.renderz.app/skill_S10_FULLBACK_3?verify=1779957464-5NiT7SE%2B3LsznauEngAsEEgqFZus%2B4liHnYZ82vp8so%3D
-  [Level 1] Boosts: Awareness +7, Standing Tackle +7, Sliding Tackle +7
-  [Level 2] Boosts: Awareness +14, Standing Tackle +14, Sliding Tackle +14
-
-> SKILL: Complete Fullback
-  Icon: https://images-v2.renderz.app/skill_S10_COMPLETE_FULLBACK_3?verify=1779957464-T4dWtmfx20hlplNnRWSpasIqVxCtXA2JtEQBD7kNVTU%3D
-  Requirement: Fullback Lvl 2
-  [Level 1] Boosts: Aggression +10, Sprint Speed +10, Strength +10, Balance +10, Standing Tackle +10, Sliding Tackle +10
-  [Level 2] Boosts: Aggression +20, Sprint Speed +20, Strength +20, Balance +20, Standing Tackle +20, Sliding Tackle +20
-
-> SKILL: Physical
-  Icon: https://images-v2.renderz.app/skill_S10_PHYSICAL_3?verify=1779957464-YfHNq7T%2FCumbsE%2BPg6AUZYV%2FXADd5OTq6G3cM5FlIhs%3D
-  Requirement: Complete Fullback Lvl 2
-  [Level 1] Boosts: Aggression +15, Strength +15, Balance +15
-
-> SKILL: Dribbling
-  Icon: https://images-v2.renderz.app/skill_S10_DRIBBLING_3?verify=1779957464-wo3kyMHT76EObel5dt9bhBzT86iUzwBrNSQB607htzc%3D
-  Requirement: Complete Fullback Lvl 2
-  [Level 1] Boosts: Ball Control +15, Dribbling +15, Agility +15
-
-> SKILL: Crossing
-  Icon: https://images-v2.renderz.app/skill_S10_CROSSING_3?verify=1779957464-Ruwul2sWUI3p38m3IWrMZu%2FN53Hz9t1TnxP05DSDCk4%3D
-  Requirement: Complete Fullback Lvl 2
-  [Level 1] Boosts: Crossing +15, Long Passing +15, Vision +15
+blank@zenith-production:~/zenith-api-endpoint$ npx ts-node src/index.ts sync --audit
+2026-06-03T06:55:24.996Z [info]: Assuming PostgreSQL schemas (player_stats, skill_level_boosts, etc.) already exist.
+2026-06-03T06:55:25.002Z [info]: --- RUNNING DEEP AUDIT ---
+2026-06-03T06:55:26.314Z [info]: Found 50149 existing players in database.
+2026-06-03T06:55:26.315Z [info]: Auditing offset 0...
+2026-06-03T06:55:26.323Z [info]: Searching with options: {"sortBy":"added","sortOrder":"desc","from":0,"size":100}
+2026-06-03T06:55:26.330Z [info]: Refreshing session via Playwright...
+2026-06-03T06:55:27.630Z [info]: Navigating to https://renderz.app/24/players ...
+2026-06-03T06:55:33.594Z [info]: Triggering search overlay...
+2026-06-03T06:55:33.640Z [warn]: Search toggle not visible in header, trying alternate buttons...
+2026-06-03T06:55:35.686Z [warn]: Search input not found or not visible.
+2026-06-03T06:55:45.945Z [warn]: Attempt 1 failed: Failed to extract security tokens from request headers. Retrying in 2000ms...
+2026-06-03T06:55:48.117Z [info]: Refreshing session via Playwright...
+2026-06-03T06:55:48.536Z [info]: Navigating to https://renderz.app/24/players ...
+2026-06-03T06:55:54.242Z [info]: Triggering search overlay...
+2026-06-03T06:55:54.303Z [warn]: Search toggle not visible in header, trying alternate buttons...
+2026-06-03T06:55:56.337Z [warn]: Search input not found or not visible.
+2026-06-03T06:56:06.534Z [warn]: Attempt 2 failed: Failed to extract security tokens from request headers. Retrying in 4000ms...
+2026-06-03T06:56:10.540Z [info]: Refreshing session via Playwright...
+2026-06-03T06:56:10.914Z [info]: Navigating to https://renderz.app/24/players ...
+2026-06-03T06:56:16.585Z [info]: Triggering search overlay...
+2026-06-03T06:56:16.647Z [warn]: Search toggle not visible in header, trying alternate buttons...
+2026-06-03T06:56:18.701Z [warn]: Search input not found or not visible.
+2026-06-03T06:56:28.979Z [warn]: Attempt 3 failed: Failed to extract security tokens from request headers. Retrying in 8000ms...
+2026-06-03T06:56:28.981Z [error]: Sync failed: Failed to extract security tokens from request headers
+blank@zenith-production:~/zenith-api-endpoint$ npx ts-node src/index.ts sync
+2026-06-03T06:56:57.148Z [info]: Assuming PostgreSQL schemas (player_stats, skill_level_boosts, etc.) already exist.
+2026-06-03T06:56:57.154Z [info]: --- RUNNING BOOKMARK SYNC ---
+2026-06-03T06:56:57.216Z [info]: Latest Asset ID in DB: 99900002
+2026-06-03T06:56:57.218Z [info]: Searching with options: {"sortBy":"added","sortOrder":"desc","from":0,"size":40}
+2026-06-03T06:56:57.223Z [info]: Refreshing session via Playwright...
+2026-06-03T06:56:57.942Z [info]: Navigating to https://renderz.app/24/players ...
+2026-06-03T06:57:03.978Z [info]: Triggering search overlay...
+2026-06-03T06:57:04.039Z [warn]: Search toggle not visible in header, trying alternate buttons...
+2026-06-03T06:57:06.079Z [warn]: Search input not found or not visible.
+2026-06-03T06:57:16.273Z [warn]: Attempt 1 failed: Failed to extract security tokens from request headers. Retrying in 2000ms...
+2026-06-03T06:57:18.276Z [info]: Refreshing session via Playwright...
+2026-06-03T06:57:18.585Z [info]: Navigating to https://renderz.app/24/players ...
+2026-06-03T06:57:24.213Z [info]: Triggering search overlay...
+2026-06-03T06:57:24.270Z [warn]: Search toggle not visible in header, trying alternate buttons...
+2026-06-03T06:57:26.306Z [warn]: Search input not found or not visible.
+2026-06-03T06:57:36.719Z [warn]: Attempt 2 failed: Failed to extract security tokens from request headers. Retrying in 4000ms...
+2026-06-03T06:57:40.724Z [info]: Refreshing session via Playwright...
+2026-06-03T06:57:41.035Z [info]: Navigating to https://renderz.app/24/players ...
+2026-06-03T06:57:46.619Z [info]: Triggering search overlay...
+2026-06-03T06:57:46.672Z [warn]: Search toggle not visible in header, trying alternate buttons...
+2026-06-03T06:57:48.710Z [warn]: Search input not found or not visible.
+2026-06-03T06:57:58.926Z [warn]: Attempt 3 failed: Failed to extract security tokens from request headers. Retrying in 8000ms...
+2026-06-03T06:57:58.927Z [error]: Sync failed: Failed to extract security tokens from request headers
+blank@zenith-production:~/zenith-api-endpoint$
