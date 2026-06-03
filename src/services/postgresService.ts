@@ -238,7 +238,7 @@ export class PostgresService {
 
                         // We construct a dynamic query because we don't know which boosts are present
                         const columns = ['player_id', 'skill_id', 'level_number', 'positions'];
-                        const values: any[] = [player.assetId, sk.id, level, JSON.stringify(skillData.unlocks[level] || [])];
+                        const values: any[] = [player.assetId, sk.id, level, skillData.unlocks[level] || []];
                         
                         let paramIndex = 5;
                         for (const [col, val] of Object.entries(boostValues)) {
