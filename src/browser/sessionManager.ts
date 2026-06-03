@@ -144,19 +144,37 @@ export class SessionManager {
         await page.waitForTimeout(3000);
       }
 
-      // Final Check & LocalStorage Fallback
+      // Final Check & LocalStorage / Svelte Fallback
       let waitTime = 0;
-      while (waitTime < 10000 && (!sessionData.token || !sessionData.fingerprint)) {
-        // Try to pull from localStorage if request interception is slow/fails
-        const ls = await page.evaluate(() => ({
-          t: localStorage.getItem('token'),
-          f: localStorage.getItem('fingerprint')
-        })).catch(() => ({ t: null, f: null }));
+      while (waitTime < 15000 && (!sessionData.token || !sessionData.fingerprint)) {
+        // Try to pull from localStorage or SvelteKit internals if request interception is slow/fails
+        const ls = await page.evaluate(() => {
+          let t = localStorage.getItem('token');
+          let f = localStorage.getItem('fingerprint');
+          
+          // If not in localStorage, try looking at the SvelteKit state script tag
+          if (!t) {
+             const scripts = Array.from(document.querySelectorAll('script'));
+             for (const s of scripts) {
+                 if (s.textContent && s.textContent.includes('x-secure-token')) {
+                     const match = s.textContent.match(/"x-secure-token":"([^"]+)"/);
+                     if (match) t = match[1];
+                 }
+             }
+          }
+          return { t, f };
+        }).catch(() => ({ t: null, f: null }));
 
-        if (ls.t) sessionData.token = ls.t;
-        if (ls.f) sessionData.fingerprint = ls.f;
+        if (ls.t && !sessionData.token) {
+           sessionData.token = ls.t;
+           logger.info('Captured x-secure-token from internal state fallback');
+        }
+        if (ls.f && !sessionData.fingerprint) {
+           sessionData.fingerprint = ls.f;
+           logger.info('Captured x-client-fingerprint from local storage fallback');
+        }
 
-        if (sessionData.token && sessionData.fingerprint) break;
+        if (sessionData.token) break; // Token is the critical one
 
         await page.waitForTimeout(1000);
         waitTime += 1000;
@@ -166,7 +184,7 @@ export class SessionManager {
       sessionData.cookies = cookies.map(c => `${c.name}=${c.value}`).join('; ');
       sessionData.expiresAt = Date.now() + CONSTANTS.SESSION_TIMEOUT;
 
-      if (!sessionData.token || !sessionData.fingerprint) {
+      if (!sessionData.token) {
         throw new Error('Failed to extract security tokens from request headers');
       }
 
