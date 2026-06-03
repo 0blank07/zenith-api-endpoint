@@ -160,6 +160,35 @@ program
   });
 
 program
+  .command('sync-ids')
+  .description('Forcefully sync specific asset IDs to the database')
+  .requiredOption('--ids <ids>', 'Comma-separated asset IDs (e.g. 24044726,24044714)')
+  .action(async (options) => {
+    try {
+      const ids = options.ids.split(',').map((id: string) => parseInt(id.trim()));
+      logger.info(`Force syncing ${ids.length} specific players...`);
+      
+      const players = [];
+      for (const id of ids) {
+        const player = await searchService.getByAssetId(id);
+        if (player) {
+          players.push(player);
+        } else {
+          logger.warn(`Player ID ${id} not found on RenderZ.`);
+        }
+      }
+
+      if (players.length > 0) {
+        await dbService.savePlayers(players);
+        logger.info(`Successfully force-synced ${players.length} players.`);
+      }
+      await dbService.disconnect();
+    } catch (error: any) {
+      logger.error(`Force sync failed: ${error.message}`);
+    }
+  });
+
+program
   .command('sync')
   .description('Sync latest cards to PostgreSQL')
   .option('-s, --size <number>', 'Number of cards to sync in single batch', '40')
@@ -175,9 +204,7 @@ program
         const existingIds = await dbService.getAllAssetIds();
         logger.info(`Found ${existingIds.size} existing players in database.`);
         
-        // Let's assume there's ~30000 players max right now.
-        // To do a true deep audit, we'd fetch all from API, but for safety, we'll fetch latest X.
-        const totalToAudit = 20000; 
+        const totalToAudit = parseInt(options.size) || 20000; 
         const BATCH_SIZE = 100;
         let missingPlayers = [];
         

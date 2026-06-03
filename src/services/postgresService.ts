@@ -42,10 +42,11 @@ export class PostgresService {
   }
 
   private mapStats(player: Player, rank: number) {
-    // Rank 0 is Base, but the python script inserted rank 0 to 5.
-    // We only fetch Base data right now, so we'll insert it as rank 0.
-    // A full implementation would calculate rank 1-5 stats dynamically based on growth curves.
-    // For simplicity, we are inserting the Base (rank 0) stats. 
+    // Safety check for corrupted names
+    let playerName = player.cardName || player.commonName || `${player.firstName} ${player.lastName}`.trim();
+    if (!playerName || /Filter Players|Home|RenderZ/i.test(playerName)) {
+        playerName = player.lastName || player.firstName || 'Unknown Player';
+    }
 
     return [
         player.assetId, // player_id
@@ -120,7 +121,8 @@ export class PostgresService {
         player.workRateAtt || 0, // work_rate_attack
         player.workRateDef || 0, // work_rate_defense
         player.club?.name || '', // team
-        player.cardName || player.firstName || '', // name
+        playerName, // name
+        player.source || '', // event
     ];
   }
 
@@ -146,14 +148,18 @@ export class PostgresService {
             awareness, heading, physical, strength, aggression, jumping, diving, gk_diving, gk_positioning, handling,
             gk_handling, reflexes, gk_reflexes, kicking, gk_kicking, is_untradable, date_added, league_image, traits_name,
             player_image, card_background, nation_flag, club_flag, color_rating, color_position, color_name, color_level,
-            work_rate_attack, work_rate_defense, team, name
+            work_rate_attack, work_rate_defense, team, name, event
           ) VALUES (
             $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24,
             $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37, $38, $39, $40, $41, $42, $43, $44, $45, $46,
             $47, $48, $49, $50, $51, $52, $53, $54, $55, $56, $57, $58, $59, $60, $61, $62, $63, $64, $65, $66, $67, $68,
             $69, $70, $71, $72, $73
           )
-          ON CONFLICT (player_id, rank, training_level) DO NOTHING
+          ON CONFLICT (player_id, rank, training_level) DO UPDATE SET
+            name = EXCLUDED.name,
+            ovr = EXCLUDED.ovr,
+            event = EXCLUDED.event,
+            traits_name = EXCLUDED.traits_name;
         `;
         
         await client.query(statsQuery, this.mapStats(player, 0));
