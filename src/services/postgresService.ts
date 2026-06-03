@@ -256,8 +256,9 @@ export class PostgresService {
                         
                         try {
                            await client.query(boostQuery, values);
-                        } catch (e) {
-                           // Silent fail on duplicate or missing col
+                        } catch (e: any) {
+                           logger.error(`Error in boostQuery for player ${player.assetId}, skill ${sk.id}: ${e.message}`);
+                           throw e; // We must throw to properly trigger the rollback, otherwise the transaction stays aborted
                         }
                     }
                 }
