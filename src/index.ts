@@ -204,6 +204,11 @@ program
         // 1. Fetch ALL IDs from RenderZ (High Speed Scan)
         const renderzIds = await searchService.getAllAssetIds();
         
+        if (renderzIds.length === 0) {
+            logger.error('Failed to discover any players on RenderZ. Discovery phase aborted.');
+            return;
+        }
+
         // 2. Fetch ALL IDs from DB
         const existingIds = await dbService.getAllAssetIds();
         
@@ -219,20 +224,25 @@ program
 
         // 4. Scrape and sync missing players in batches
         const newlyInserted = [];
-        const BATCH_SIZE = 40;
+        const BATCH_SIZE = 100; // Reduced for better stability
         for (let i = 0; i < missingIds.length; i += BATCH_SIZE) {
             const batch = missingIds.slice(i, i + BATCH_SIZE);
-            logger.info(`Syncing missing batch ${i / BATCH_SIZE + 1} of ${Math.ceil(missingIds.length / BATCH_SIZE)}...`);
+            const batchNum = Math.floor(i / BATCH_SIZE) + 1;
+            const totalBatches = Math.ceil(missingIds.length / BATCH_SIZE);
             
-            const players = [];
-            for (const id of batch) {
-                const player = await searchService.getByAssetId(id);
-                if (player) players.push(player);
-            }
+            logger.info(`--- BATCH ${batchNum}/${totalBatches}: CAPTURING ${batch.length} PLAYERS ---`);
+            const startTime = Date.now();
             
+            const players = await searchService.getPlayersByAssetIds(batch);
+            
+            const captureTime = ((Date.now() - startTime) / 1000).toFixed(1);
+            logger.info(`Captured ${players.length}/${batch.length} players in ${captureTime}s.`);
+
             if (players.length > 0) {
+                logger.info(`IMPORTING ${players.length} players to database...`);
                 await dbService.savePlayers(players);
                 newlyInserted.push(...players.map(p => p.assetId));
+                logger.info(`Import complete.`);
             }
         }
         fs.writeFileSync(backupPath, JSON.stringify(newlyInserted));

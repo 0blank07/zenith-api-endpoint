@@ -15,6 +15,121 @@ export class SearchService {
     this.sessionManager = new SessionManager();
   }
 
+  async getPlayersByAssetIds(assetIds: number[]): Promise<Player[]> {
+      const results: Player[] = [];
+      const batchSize = 50; // Increased sub-batch size for faster processing
+      
+      for (let i = 0; i < assetIds.length; i += batchSize) {
+          const batch = assetIds.slice(i, i + batchSize);
+          logger.info(`  -> Capturing sub-batch ${Math.floor(i/batchSize) + 1}/${Math.ceil(assetIds.length/batchSize)} (${batch.length} players)...`);
+          try {
+              // Try direct API first for the batch
+              const payload = { 
+                  query: { bool: { must: [{ terms: { assetId: batch } }], should: [], must_not: [] } }, 
+                  from: 0, 
+                  size: batch.length, 
+                  _source: [] 
+              };
+              const response = await this.client.post<SearchResponse>(CONSTANTS.SEARCH_ENDPOINT, payload);
+              if (response.players && response.players.length > 0) {
+                  results.push(...response.players.map(p => this.normalizePlayer(p)));
+                  if (response.players.length === batch.length) continue;
+                  
+                  // If we got some but not all, find which are missing and continue to SSR
+                  const foundIds = new Set(response.players.map((p: any) => p.assetId));
+                  const remainingBatch = batch.filter(id => !foundIds.has(id));
+                  if (remainingBatch.length > 0) {
+                      const ssrPlayers = await this.getPlayersByAssetIdsViaSSR(remainingBatch);
+                      results.push(...ssrPlayers);
+                  }
+                  continue;
+              }
+          } catch (e) {
+              logger.warn(`Batch API fetch failed for ${batch.length} players, falling back to SSR...`);
+          }
+
+          // Fallback to SSR for this small batch
+          const ssrPlayers = await this.getPlayersByAssetIdsViaSSR(batch);
+          results.push(...ssrPlayers);
+          
+          // Small delay between sub-batches to be safe
+          if (i + batchSize < assetIds.length) await new Promise(r => setTimeout(r, 500));
+      }
+      
+      return results;
+  }
+
+  private async getPlayersByAssetIdsViaSSR(assetIds: number[]): Promise<Player[]> {
+    const { chromium } = require('playwright-extra');
+    const stealthPlugin = require('puppeteer-extra-plugin-stealth');
+    chromium.use(stealthPlugin());
+
+    const browser = await chromium.launch({ headless: process.env.HEADLESS !== 'false' });
+    const page = await browser.newPage();
+    let tokens: { token: string, fingerprint: string, code?: string } | null = null;
+
+    try {
+      page.on('request', (req: any) => {
+        if (tokens && tokens.token) return;
+        if (!req.url().includes('elasticsearch')) return;
+        const h = req.headers();
+        if (h['x-secure-token'] && h['x-client-fingerprint']) {
+          tokens = { token: h['x-secure-token'], fingerprint: h['x-client-fingerprint'], code: h['x-code'] };
+        }
+      });
+
+      await page.goto(`${CONSTANTS.BASE_URL}/24/players`, { waitUntil: 'domcontentloaded', timeout: 60000 });
+      
+      // Wait for tokens
+      for (let i = 0; i < 20; i++) {
+        if (tokens) break;
+        if (i === 10) {
+            await page.evaluate(() => {
+                const btn = Array.from(document.querySelectorAll('button')).find(b => b.textContent?.includes('Search'));
+                if (btn) btn.click();
+            }).catch(() => null);
+        }
+        await new Promise(r => setTimeout(r, 500));
+      }
+
+      if (!tokens) return [];
+
+      return await page.evaluate(async (params: { assetIds: number[], tokens: any, endpoint: string }) => {
+        const { assetIds, tokens, endpoint } = params;
+        const found: any[] = [];
+        
+        // Fetch players one by one or in a single terms query
+        const res = await fetch(endpoint, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-secure-token': tokens.token,
+            'x-client-fingerprint': tokens.fingerprint,
+            ...(tokens.code ? { 'x-code': tokens.code } : {})
+          },
+          body: JSON.stringify({
+            query: { bool: { must: [{ terms: { assetId: assetIds } }], should: [], must_not: [] } },
+            from: 0,
+            size: assetIds.length,
+            _source: []
+          })
+        });
+
+        if (res.ok) {
+            const json = await res.json();
+            if (json.players) found.push(...json.players);
+        }
+        return found;
+      }, { assetIds, tokens, endpoint: CONSTANTS.SEARCH_ENDPOINT });
+
+    } catch (error: any) {
+      logger.error(`SSR Batch fetch failed: ${error.message}`);
+      return [];
+    } finally {
+      await browser.close();
+    }
+  }
+
   private async searchViaSSR(url: string): Promise<Player[]> {
     const { chromium } = require('playwright-extra');
     const stealthPlugin = require('puppeteer-extra-plugin-stealth');
@@ -139,14 +254,14 @@ export class SearchService {
   }
 
   async getAllAssetIds(): Promise<number[]> {
-    const fetchIdsBatch = async (from: number, size: number, tokens?: any) => {
-        const body = {
+    const fetchIdsBatch = async (size: number, searchAfter?: any[], tokens?: any) => {
+        const body: any = {
             query: { bool: { must: [], should: [], must_not: [] } },
             _source: ["assetId"],
             sort: [{ assetId: { order: "desc" } }],
-            from: from,
             size: size
         };
+        if (searchAfter) body.search_after = searchAfter;
         
         if (tokens) {
             // Using browser fetch context
@@ -161,17 +276,24 @@ export class SearchService {
     try {
       const allIds: number[] = [];
       const BATCH_SIZE = 1000;
-      let from = 0;
-      let total = 30000;
+      let lastAssetId: number | null = null;
+      let hasMore = true;
 
-      while (from < total) {
-        const response: any = await fetchIdsBatch(from, BATCH_SIZE);
+      while (hasMore) {
+        const searchAfter = lastAssetId ? [lastAssetId] : undefined;
+        const response: any = await fetchIdsBatch(BATCH_SIZE, searchAfter);
+        
         if (response.players && response.players.length > 0) {
            const batch = response.players.map((p: any) => p.assetId);
            allIds.push(...batch);
-           from += BATCH_SIZE;
-           if (response.total) total = response.total;
-        } else break;
+           lastAssetId = batch[batch.length - 1];
+           
+           if (response.players.length < BATCH_SIZE) {
+               hasMore = false;
+           }
+        } else {
+           hasMore = false;
+        }
       }
       logger.info(`Scan complete. Found ${allIds.length} players on RenderZ.`);
       return allIds;
@@ -202,61 +324,111 @@ export class SearchService {
     const stealthPlugin = require('puppeteer-extra-plugin-stealth');
     chromium.use(stealthPlugin());
 
-    const browser = await chromium.launch({ headless: process.env.HEADLESS !== 'false' });
+    const browser = await chromium.launch({ headless: process.env.HEADLESS !== 'false' });   
     const page = await browser.newPage();
-    let tokens: { token: string, fingerprint: string } | null = null;
+    let capturedTokens: any = null;
 
     try {
+      page.on('console', (msg: any) => logger.debug(`BROWSER: ${msg.text()}`));
+
       page.on('request', (req: any) => {
-        if (tokens || !req.url().includes('elasticsearch')) return;
         const headers = req.headers();
+        if (headers['x-code'] && (!capturedTokens || !capturedTokens.code)) {
+            if (!capturedTokens) capturedTokens = {};
+            capturedTokens.code = headers['x-code'];
+            logger.info('Captured x-code for SSR Discovery');
+        }
+
+        if (capturedTokens && capturedTokens.token && capturedTokens.fingerprint) return;
+        if (!req.url().includes('elasticsearch')) return;
+        
         if (headers['x-secure-token'] && headers['x-client-fingerprint']) {
-          tokens = { token: headers['x-secure-token'], fingerprint: headers['x-client-fingerprint'] };
+          if (!capturedTokens) capturedTokens = {};
+          capturedTokens.token = headers['x-secure-token'];
+          capturedTokens.fingerprint = headers['x-client-fingerprint'];
+          if (headers['x-code']) capturedTokens.code = headers['x-code'];
+          logger.info('Captured search tokens for SSR Discovery');
         }
       });
 
       await page.goto(`${CONSTANTS.BASE_URL}/24/players`, { waitUntil: 'domcontentloaded', timeout: 60000 });
-      for (let i = 0; i < 30; i++) {
-        if (tokens) break;
+      
+      // Force a search interaction to ensure tokens are generated/used
+      await page.evaluate(() => {
+          const searchBtn = Array.from(document.querySelectorAll('button, a')).find(el => el.textContent?.toLowerCase().includes('search'));
+          if (searchBtn instanceof HTMLElement) searchBtn.click();
+      }).catch(() => null);
+
+      for (let i = 0; i < 40; i++) {
+        if (capturedTokens && capturedTokens.token && capturedTokens.fingerprint) break;
         await new Promise(r => setTimeout(r, 500));
       }
 
-      if (!tokens) throw new Error('Failed to capture tokens for SSR Discovery');
+      if (!capturedTokens || !capturedTokens.token) throw new Error('Failed to capture tokens for SSR Discovery');
 
-      return await page.evaluate(async (params: { tokens: any, endpoint: string }) => {
+      return await page.evaluate(async (params: { tokens: any, endpoint: string }) => {      
         const results: number[] = [];
         const { tokens, endpoint } = params;
-        let from = 0;
-        let total = 30000;
-        
-        while (from < total) {
+        let lastAssetId: number | null = null;
+        let lastSortValue: any = null;
+        let hasMore = true;
+        const BATCH_SIZE = 1000; // Increased for speed
+
+        while (hasMore) {
+          const headers: any = {
+            'Content-Type': 'application/json',
+            'x-secure-token': tokens.token,
+            'x-client-fingerprint': tokens.fingerprint
+          };
+          if (tokens.code) headers['x-code'] = tokens.code;
+
+          const body: any = {
+              query: { bool: { must: [], should: [], must_not: [] } },
+              sort: [{ rating: { order: "desc" } }, { assetId: { order: "desc" } }],
+              _source: [],
+              from: 0,
+              size: BATCH_SIZE
+          };
+          if (lastSortValue !== null && lastAssetId !== null) {
+              delete body.from;
+              body.search_after = [lastSortValue, lastAssetId];
+          }
+
           const res = await fetch(endpoint, {
             method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'x-secure-token': tokens.token,
-              'x-client-fingerprint': tokens.fingerprint
-            },
-            body: JSON.stringify({
-              query: { bool: { must: [], should: [], must_not: [] } },
-              _source: ["assetId"],
-              sort: [{ assetId: { order: "desc" } }],
-              from: from,
-              size: 1000
-            })
+            headers,
+            body: JSON.stringify(body)
           });
 
-          if (!res.ok) break;
+          if (!res.ok) {
+              console.error(`Fetch failed with status ${res.status}`);
+              break;
+          }
           const json = await res.json();
-          if (!json.players || json.players.length === 0) break;
+          if (!json.players || json.players.length === 0) {
+              console.log('SSR Search returned no players. Response: ' + JSON.stringify(json));
+              hasMore = false;
+              break;
+          }
           
           results.push(...json.players.map((p: any) => p.assetId));
-          from += 1000;
-          if (json.total) total = json.total;
-          await new Promise(r => setTimeout(r, 100));
+          const lastPlayer = json.players[json.players.length - 1];
+          lastSortValue = lastPlayer.rating;
+          lastAssetId = lastPlayer.assetId;
+          
+          if (results.length % 1000 === 0) {
+              console.log(`SSR Discovery Progress: ${results.length} players found...`);
+          }
+          
+          if (json.players.length < BATCH_SIZE) {
+              hasMore = false;
+          }
+          
+          // Minimal throttle
+          await new Promise(r => setTimeout(r, 50));
         }
         return results;
-      }, { tokens, endpoint: CONSTANTS.SEARCH_ENDPOINT });
+      }, { tokens: capturedTokens, endpoint: CONSTANTS.SEARCH_ENDPOINT });
     } catch (error: any) {
       logger.error(`SSR Discovery failed: ${error.message}`);
       return [];
@@ -528,8 +700,23 @@ export class SearchService {
           const allResults = await page.evaluate(async (params: { targetSize: number, tokens: any, options: SearchOptions, endpoint: string }) => {
             const results: any[] = [];
             const { targetSize, tokens, options, endpoint } = params;
+            let lastSortValue: any = null;
+            let lastAssetId: number | null = null;
             
-            for (let offset = 0; offset < targetSize; offset += 40) {
+            const sortBy = options.sortBy || 'rating';
+            const sortOrder = options.sortOrder || 'desc';
+
+            while (results.length < targetSize) {
+              const body: any = {
+                query: { bool: { must: [], should: [], must_not: [] } },
+                sort: [ { [sortBy]: { order: sortOrder } }, { assetId: { order: 'desc' } } ],
+                size: 40
+              };
+              
+              if (lastAssetId !== null) {
+                  body.search_after = [lastSortValue, lastAssetId];
+              }
+
               const res = await fetch(endpoint, {
                 method: 'POST',
                 headers: {
@@ -537,12 +724,7 @@ export class SearchService {
                   'x-secure-token': tokens.token,
                   'x-client-fingerprint': tokens.fingerprint
                 },
-                body: JSON.stringify({
-                  query: { bool: { must: [], should: [], must_not: [] } }, // Simple query for latest
-                  sort: [ { [options.sortBy || 'rating']: { order: options.sortOrder || 'desc' } }, { assetId: { order: 'desc' } } ],
-                  from: offset,
-                  size: 40
-                })
+                body: JSON.stringify(body)
               });
 
               if (!res.ok) break;
@@ -550,6 +732,11 @@ export class SearchService {
               if (!json.players || json.players.length === 0) break;
               
               results.push(...json.players);
+              const lastPlayer = json.players[json.players.length - 1];
+              lastSortValue = lastPlayer[sortBy];
+              lastAssetId = lastPlayer.assetId;
+
+              if (json.players.length < 40) break;
               if (results.length >= targetSize) break;
               
               // Small throttle to stay under the radar
