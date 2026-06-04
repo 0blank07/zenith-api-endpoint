@@ -113,24 +113,39 @@ export class PostgresService {
     const metaValues: any[][] = [];
     const availableSkillsValues: any[][] = [];
     const boostValues: any[][] = [];
+    const catalogValues: any[][] = [];
+    const seenSkills = new Set<number>();
 
     for (const player of players) {
-      statsValues.push(this.mapStats(player, 0));
-      metaValues.push([player.assetId, 0, 0, 1]);
+      for (let rank = 0; rank <= 5; rank++) {
+        statsValues.push(this.mapStats(player, rank));
+        metaValues.push([player.assetId, rank, 0, rank]);
+
+        if (player.skillStyleSkills && player.skillStyleSkills.length > 0) {
+          for (const sk of player.skillStyleSkills) {
+            const skillData = SKILL_BOOSTS[sk.id];
+            const isLocked = skillData?.requirement ? true : false;
+            const reqType = skillData?.requirement ? 'skill' : null;
+            const reqName = skillData?.requirement ? `Skill ID ${skillData.requirement.skillId}` : null;
+            const reqLevel = skillData?.requirement ? skillData.requirement.level : null;
+            const reqId = skillData?.requirement ? skillData.requirement.skillId : null;
+
+            availableSkillsValues.push([
+              player.assetId, rank, 0, sk.id, isLocked, reqType, reqName, reqLevel, reqId, reqLevel
+            ]);
+            
+            if (!seenSkills.has(sk.id)) {
+                seenSkills.add(sk.id);
+                const skillTitle = getSkillTitle(sk.id, sk.name, sk.image);
+                catalogValues.push([sk.id, skillTitle, sk.image || '']);
+            }
+          }
+        }
+      }
 
       if (player.skillStyleSkills && player.skillStyleSkills.length > 0) {
         for (const sk of player.skillStyleSkills) {
           const skillData = SKILL_BOOSTS[sk.id];
-          const isLocked = skillData?.requirement ? true : false;
-          const reqType = skillData?.requirement ? 'skill' : null;
-          const reqName = skillData?.requirement ? `Skill ID ${skillData.requirement.skillId}` : null;
-          const reqLevel = skillData?.requirement ? skillData.requirement.level : null;
-          const reqId = skillData?.requirement ? skillData.requirement.skillId : null;
-
-          availableSkillsValues.push([
-            player.assetId, 0, 0, sk.id, isLocked, reqType, reqName, reqLevel, reqId, reqLevel
-          ]);
-
           if (skillData && skillData.boosts) {
             for (let level = 1; level <= skillData.maxLevel; level++) {
               const boosts = skillData.boosts[level];
@@ -195,6 +210,23 @@ export class PostgresService {
     const client = await this.pool.connect();
     try {
       await client.query('BEGIN');
+      
+      if (catalogValues.length > 0) {
+        const catalogQuery = format(`
+          INSERT INTO skills_catalog (skill_id, skill_name, skill_image)
+          VALUES %L
+          ON CONFLICT (skill_id) DO UPDATE SET
+            skill_name = EXCLUDED.skill_name,
+            skill_image = EXCLUDED.skill_image
+        `, catalogValues);
+        try {
+            await client.query(catalogQuery);
+        } catch (e: any) {
+            logger.error(`Error in catalogQuery: ${e.message}`);
+            throw e;
+        }
+      }
+
       if (statsValues.length > 0) {
         const statsQuery = format(`
           INSERT INTO player_stats (
