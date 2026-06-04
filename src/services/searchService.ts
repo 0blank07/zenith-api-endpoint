@@ -307,16 +307,19 @@ export class SearchService {
     }
   }
 
-  private async fetchInBrowser(endpoint: string, body: any, tokens: any) {
-      return await fetch(endpoint, {
-          method: 'POST',
+  private async fetchInBrowser(endpoint: string, body: any, tokens: any, method: string = 'POST') {
+      const options: any = {
+          method,
           headers: {
               'Content-Type': 'application/json',
               'x-secure-token': tokens.token,
               'x-client-fingerprint': tokens.fingerprint
-          },
-          body: JSON.stringify(body)
-      }).then(r => r.json());
+          }
+      };
+      if (body) {
+          options.body = JSON.stringify(body);
+      }
+      return await fetch(endpoint, options).then(r => r.json());
   }
 
   private async getAllAssetIdsViaSSR(): Promise<number[]> {
@@ -459,6 +462,28 @@ export class SearchService {
       traits: this.mergeTraits(this.mergeTraits(raw.traits, supplementalTraits), renderedTraits),
       skillMovesLevel: typeof raw.skillMovesLevel === 'number' ? raw.skillMovesLevel : parseInt(raw.skillMoves?.stars?.toString().match(/\d+/)?.[0] || '3')
     };
+  }
+
+  async getSkillDetails(skillId: number, tokens?: any): Promise<any> {
+    try {
+        const endpoint = `https://renderz.app/api/skill/style/skill/${skillId}`;
+        let data;
+        
+        if (tokens) {
+             data = await this.fetchInBrowser(endpoint, undefined, tokens, 'GET');
+        } else {
+             // Use Axios for faster fetches
+             const axios = require('axios');
+             const response = await axios.get(endpoint, {
+                 headers: { 'User-Agent': CONSTANTS.DEFAULT_USER_AGENT }
+             });
+             data = response.data;
+        }
+        return data;
+    } catch (e) {
+        logger.warn(`Failed to fetch dynamic skill details for skill ID ${skillId}`);
+        return null;
+    }
   }
 
   private extractLinkedId(link: unknown): number {

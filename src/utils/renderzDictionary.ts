@@ -312,5 +312,6 @@ export const RENDERZ_DICTIONARY: Record<string, string> = {
   "NAME_SKILL_33061": "Playmaker",
   "NAME_SKILL_31021": "Complete Fullback",
   "NAME_SKILL_33051": "Half-Winger",
-  "NAME_SKILL_31070": "https://assads.adsboosters.xyz/Pixel.gif"
+  "NAME_SKILL_31070": "https://assads.adsboosters.xyz/Pixel.gif",
+  "NAME_SKILL_30041": "Ball-Playing Defender"
 };

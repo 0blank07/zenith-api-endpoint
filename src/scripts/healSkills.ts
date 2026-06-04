@@ -6,8 +6,8 @@ import logger from '../utils/logger';
 
 chromium.use(stealthPlugin());
 
-const TREE_PATH = path.join(__dirname, '../utils/skillTree.ts');
-const DICT_PATH = path.join(__dirname, '../utils/renderzDictionary.ts');
+const TREE_PATH = path.join(process.cwd(), 'src/utils/skillTree.ts');
+const DICT_PATH = path.join(process.cwd(), 'src/utils/renderzDictionary.ts');
 
 export interface MissingSkill {
   skillId: number;

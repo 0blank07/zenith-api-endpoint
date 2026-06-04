@@ -124,16 +124,24 @@ export class PostgresService {
         if (player.skillStyleSkills && player.skillStyleSkills.length > 0) {
           for (const sk of player.skillStyleSkills) {
             const skillData = SKILL_BOOSTS[sk.id];
+
             const isLocked = skillData?.requirement ? true : false;
             const reqType = skillData?.requirement ? 'skill' : null;
-            const reqName = skillData?.requirement ? `Skill ID ${skillData.requirement.skillId}` : null;
+            // Lookup name from SKILL_BOOSTS to avoid "Skill ID X"
+            let reqName = null;
+            if (skillData?.requirement) {
+                const reqData = SKILL_BOOSTS[skillData.requirement.skillId];
+                const rawName = reqData ? reqData.name : `Skill ID ${skillData.requirement.skillId}`;
+                reqName = getSkillTitle(skillData.requirement.skillId, rawName, '');
+            }
+
             const reqLevel = skillData?.requirement ? skillData.requirement.level : null;
             const reqId = skillData?.requirement ? skillData.requirement.skillId : null;
 
             availableSkillsValues.push([
               player.assetId, rank, 0, sk.id, isLocked, reqType, reqName, reqLevel, reqId, reqLevel
             ]);
-            
+
             if (!seenSkills.has(sk.id)) {
                 seenSkills.add(sk.id);
                 const skillTitle = getSkillTitle(sk.id, sk.name, sk.image);
@@ -146,6 +154,7 @@ export class PostgresService {
       if (player.skillStyleSkills && player.skillStyleSkills.length > 0) {
         for (const sk of player.skillStyleSkills) {
           const skillData = SKILL_BOOSTS[sk.id];
+          
           if (skillData && skillData.boosts) {
             for (let level = 1; level <= skillData.maxLevel; level++) {
               const boosts = skillData.boosts[level];
@@ -272,7 +281,13 @@ export class PostgresService {
           (player_id, rank, training_level, skill_id, is_locked, unlock_requirement_type,
            unlock_requirement_skillname, unlock_requirement_level, prerequisite_skill_id, prerequisite_level)
           VALUES %L
-          ON CONFLICT (player_id, rank, training_level, skill_id) DO NOTHING
+          ON CONFLICT (player_id, rank, training_level, skill_id) DO UPDATE SET
+            is_locked = EXCLUDED.is_locked,
+            unlock_requirement_type = EXCLUDED.unlock_requirement_type,
+            unlock_requirement_skillname = EXCLUDED.unlock_requirement_skillname,
+            unlock_requirement_level = EXCLUDED.unlock_requirement_level,
+            prerequisite_skill_id = EXCLUDED.prerequisite_skill_id,
+            prerequisite_level = EXCLUDED.prerequisite_level
         `, availableSkillsValues);
         try {
             await client.query(availableQuery);

@@ -1,3 +1,4 @@
+// Master Skill Tree (Requirements & Boosts)
 export const SKILL_TREE: Record<number, any> = {
   "1010": {
     "id": 1010,
@@ -5715,6 +5716,35 @@ export const SKILL_TREE: Record<number, any> = {
         "awr": 20,
         "dri": 20,
         "agi": 20,
+        "stt": 20,
+        "vis": 20
+      }
+    }
+  },
+  "30041": {
+    "id": 30041,
+    "name": "Ball-Playing Defender",
+    "maxLevel": 2,
+    "requirement": null,
+    "unlocks": {},
+    "boosts": {
+      "1": {
+        "acc": 10,
+        "awr": 10,
+        "dri": 10,
+        "lpa": 10,
+        "spd": 10,
+        "spa": 10,
+        "stt": 10,
+        "vis": 10
+      },
+      "2": {
+        "acc": 20,
+        "awr": 20,
+        "dri": 20,
+        "lpa": 20,
+        "spd": 20,
+        "spa": 20,
         "stt": 20,
         "vis": 20
       }
