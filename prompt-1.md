@@ -1,25 +1,20 @@
+blank@zenith-production:~$ node -e "require('dotenv').config(); const { Client } = require('pg'); const c = new Client({host: process.env.PG_HOST, user: process.env.PG_USER, password: process.env.PG_PASSWORD, database:
+     process.env.PG_DATABASE}); async function check(){ await c.connect(); console.log('--- 1. PLAYER STATS ---'); const s = await c.query('SELECT name, ovr, position, team, event FROM player_stats WHERE
+     player_id = 24044726'); console.table(s.rows); console.log('\n--- 2. SKILLS META ---'); const m = await c.query('SELECT * FROM player_skills_meta WHERE player_id = 24044726'); console.table(m.rows);
+     console.log('\n--- 3. AVAILABLE SKILLS ---'); const a = await c.query('SELECT skill_id, is_locked, unlock_requirement_skillname FROM player_available_skills WHERE player_id = 24044726');
+     console.table(a.rows); console.log('\n--- 4. SKILL BOOSTS (Sample) ---'); const b = await c.query('SELECT skill_id, level_number, boost_pace, boost_shooting FROM skill_level_boosts WHERE player_id =
+     24044726 LIMIT 5'); console.table(b.rows); await c.end(); } check();"
+[eval]:2
+     process.env.PG_DATABASE}); async function check(){ await c.connect(); console.log('--- 1. PLAYER STATS ---'); const s = await c.query('SELECT name, ovr, position, team, event FROM player_stats WHERE
+                                                                                                                                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Aadar@Blank MINGW64 /c/project-files/zenith-api-endpoint (main)
-$ npx ts-node src/index.ts sync --missing
-2026-06-03T16:49:49.208Z [info]: Assuming PostgreSQL schemas (player_stats, skill_level_boosts, etc.) already exist. 
-2026-06-03T16:49:49.214Z [info]: --- RUNNING FULL DISCOVERY SYNC --- 
-2026-06-03T16:49:49.216Z [info]: Fetching all Asset IDs from RenderZ (High Speed Scan)... 
-2026-06-03T16:49:49.220Z [info]: Using cached session data 
-2026-06-03T16:49:51.039Z [warn]: Attempt 1 failed: SESSION_BLOCKED. Retrying in 2000ms... 
-2026-06-03T16:49:53.048Z [info]: Using cached session data 
-2026-06-03T16:49:53.211Z [warn]: Attempt 2 failed: SESSION_BLOCKED. Retrying in 4000ms... 
-2026-06-03T16:49:57.226Z [info]: Using cached session data 
-2026-06-03T16:49:57.387Z [warn]: Attempt 3 failed: SESSION_BLOCKED. Retrying in 8000ms... 
-2026-06-03T16:49:57.389Z [warn]: Direct scan blocked. Entering Browser-based ID Discovery... 
-2026-06-03T16:50:11.351Z [info]: Full Scan Results: RenderZ has 0 players. DB has 50249 players. 
-2026-06-03T16:50:11.351Z [info]: Identified 0 missing players. 
-2026-06-03T16:50:11.352Z [info]: Database is already perfectly in sync with RenderZ. 
+SyntaxError: Invalid or unexpected token
+    at makeContextifyScript (node:internal/vm:185:14)
+    at node:internal/process/execution:107:22
+    at [eval]-wrapper:6:24
+    at runScript (node:internal/process/execution:101:62)
+    at evalScript (node:internal/process/execution:133:3)
+    at node:internal/main/eval_string:51:3
 
-Aadar@Blank MINGW64 /c/project-files/zenith-api-endpoint (main)
-$ 
-
-
-
-
-
-
+Node.js v20.20.1
+blank@zenith-production:~$
