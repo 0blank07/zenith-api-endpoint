@@ -15,10 +15,10 @@ export interface MissingSkill {
   name: string;
 }
 
-export async function healMissingSkills(missingSkills: MissingSkill[]) {
-  if (!missingSkills || missingSkills.length === 0) return;
+export async function healMissingSkills(missingSkills: MissingSkill[]): Promise<Record<number, any>> {
+  if (!missingSkills || missingSkills.length === 0) return {};
 
-  // Deduplicate by skillId to prevent redundant scraping loops
+  const newlyLearned: Record<number, any> = {};
   const uniqueMissingSkills = Array.from(new Map(missingSkills.map(item => [item.skillId, item])).values());
 
   logger.info(`\n🛠️  Self-Healing Triggered: Found ${uniqueMissingSkills.length} unique missing skill(s). Extracting data...`);
@@ -27,15 +27,12 @@ export async function healMissingSkills(missingSkills: MissingSkill[]) {
   const context = await browser.newContext();
   const page = await context.newPage();
 
-  // Load existing trees
   let masterTree: Record<number, any> = {};
   if (fs.existsSync(TREE_PATH)) {
       try {
           const content = fs.readFileSync(TREE_PATH, 'utf8');
           const jsonMatch = content.match(/export const SKILL_TREE: Record<number, any> = (\{[\s\S]*?\});/);
-          if (jsonMatch) {
-              masterTree = JSON.parse(jsonMatch[1]);
-          }
+          if (jsonMatch) masterTree = JSON.parse(jsonMatch[1]);
       } catch (e) {}
   }
 
@@ -44,9 +41,7 @@ export async function healMissingSkills(missingSkills: MissingSkill[]) {
       try {
           const content = fs.readFileSync(DICT_PATH, 'utf8');
           const jsonMatch = content.match(/export const RENDERZ_DICTIONARY: Record<string, string> = (\{[\s\S]*?\});/);
-          if (jsonMatch) {
-              dict = JSON.parse(jsonMatch[1]);
-          }
+          if (jsonMatch) dict = JSON.parse(jsonMatch[1]);
       } catch (e) {}
   }
 
@@ -54,7 +49,10 @@ export async function healMissingSkills(missingSkills: MissingSkill[]) {
 
   try {
     for (const missing of uniqueMissingSkills) {
-        if (masterTree[missing.skillId]) continue; // Skip if already healed
+        if (masterTree[missing.skillId]) {
+             newlyLearned[missing.skillId] = masterTree[missing.skillId];
+             continue;
+        }
 
         logger.info(`Extracting Skill ID ${missing.skillId} from Player ID ${missing.playerId}...`);
         
@@ -66,7 +64,6 @@ export async function healMissingSkills(missingSkills: MissingSkill[]) {
                 .then(el => el?.evaluate((a: any) => a.href))
                 .catch(() => null);
 
-            // Fallback if no FC 24 player found with this skill
             if (!playerUrl) {
                 playerUrl = `https://renderz.app/24/player/${missing.playerId}`;
                 logger.warn(`No FC 24 player found for skill ${missing.skillId}. Falling back to direct Player ID ${missing.playerId}...`);
@@ -107,7 +104,6 @@ export async function healMissingSkills(missingSkills: MissingSkill[]) {
             });
 
             if (skillsData) {
-                // Find our specific skill, or any others that might be missing!
                 for (const item of skillsData) {
                     const sk = item.skill;
                     if (!sk || !sk.id) continue;
@@ -122,7 +118,6 @@ export async function healMissingSkills(missingSkills: MissingSkill[]) {
                             boosts[l.level] = l.abilityModifiers;
                         }
 
-                        // Determine name
                         let resolvedName = sk.name;
                         if (!resolvedName || resolvedName.startsWith('NAME_SKILL_')) {
                             resolvedName = dict[`NAME_SKILL_${sk.id}`] || missing.name;
@@ -130,7 +125,7 @@ export async function healMissingSkills(missingSkills: MissingSkill[]) {
                             resolvedName = dict[`NAME_SKILL_${sk.id}`] || sk.name;
                         }
 
-                        masterTree[sk.id] = {
+                        const newSkill = {
                             id: sk.id,
                             name: resolvedName,
                             maxLevel,
@@ -138,11 +133,11 @@ export async function healMissingSkills(missingSkills: MissingSkill[]) {
                             unlocks,
                             boosts
                         };
+
+                        masterTree[sk.id] = newSkill;
+                        newlyLearned[sk.id] = newSkill;
                         
-                        // Also update Dictionary if it was missing
-                        if (!dict[`NAME_SKILL_${sk.id}`]) {
-                            dict[`NAME_SKILL_${sk.id}`] = resolvedName;
-                        }
+                        if (!dict[`NAME_SKILL_${sk.id}`]) dict[`NAME_SKILL_${sk.id}`] = resolvedName;
 
                         updatedCount++;
                         logger.info(`✅ Successfully scraped and learned skill: ${resolvedName} (ID: ${sk.id})`);
@@ -173,4 +168,6 @@ export async function healMissingSkills(missingSkills: MissingSkill[]) {
   } finally {
     await browser.close();
   }
+  
+  return newlyLearned;
 }

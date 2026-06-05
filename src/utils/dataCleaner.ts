@@ -9,10 +9,10 @@ import { SKILL_TREE } from './skillTree';
 
 const NATIONS: Record<number, string> = {
   52: 'Argentina', 14: 'England', 54: 'Brazil', 18: 'France', 21: 'Germany',
-  45: 'Spain', 38: 'Portugal', 34: 'Netherlands', 31: 'Italy', 39: 'USA',
+  45: 'Spain', 38: 'Portugal', 34: 'Netherlands', 31: 'Italy', 39: 'USA', 95: 'USA',
   350: 'Saudi Arabia', 5: 'Belgium', 35: 'Norway', 44: 'Scotland', 27: 'Japan',
   25: 'South Korea', 117: 'Morocco', 30: 'Ivory Coast', 42: 'Senegal', 111: 'Cameroon',
-  103: 'Nigeria', 49: 'Uruguay', 48: 'Turkey', 10: 'Austria', 22: 'Ghana'
+  103: 'Nigeria', 49: 'Uruguay', 48: 'Turkey', 10: 'Austria', 22: 'Ghana', 47: 'Switzerland'
 };
 
 const LEAGUES: Record<number, string> = {
@@ -25,7 +25,8 @@ const CLUBS: Record<number, string> = {
   112893: 'Inter Miami', 1369: 'PSG', 241: 'FC Barcelona', 10: 'Manchester City',
   11: 'Manchester United', 243: 'Real Madrid', 5: 'Chelsea', 45: 'Juventus',
   22: 'Bayern Munich', 21: 'Borussia Dortmund', 240: 'Atletico Madrid',
-  112658: 'Al Nassr', 112392: 'Al Hilal', 73: 'Spurs', 9: 'Liverpool', 1: 'Arsenal'
+  112658: 'Al Nassr', 112392: 'Al Hilal', 73: 'Spurs', 9: 'Liverpool', 1: 'Arsenal',
+  113149: 'FC Cincinnati', 113018: 'St. Louis CITY SC', 114154: 'Icons'
 };
 
 const PROGRAMS: Record<string, string> = {
@@ -165,8 +166,24 @@ export function cleanName(name: string, id?: number, type?: 'club' | 'league' | 
   }
 
   // Check Master RenderZ Dictionary
-  if (RENDERZ_DICTIONARY[name]) {
+  if (RENDERZ_DICTIONARY[name] && !RENDERZ_DICTIONARY[name].startsWith('NOT_FOUND_')) {
     return RENDERZ_DICTIONARY[name];
+  }
+
+  // Check Local Programs Dictionary
+  if (PROGRAMS[name]) return PROGRAMS[name];
+
+  // Try parsing IDs from generic names or numeric strings
+  const numericId = parseInt(name.replace(/^(TeamName_|LeagueName_|NationName_|PROGRAM_)/i, ''));
+  if (!isNaN(numericId)) {
+      if (type === 'nation' && NATIONS[numericId]) return NATIONS[numericId];
+      if (type === 'club' && CLUBS[numericId]) return CLUBS[numericId];
+      if (type === 'league' && LEAGUES[numericId]) return LEAGUES[numericId];
+  }
+
+  // Clean PROGRAM strings
+  if (name.toUpperCase().includes('PROGRAM')) {
+      return name.replace(/PROGRAM/i, '').replace(/_/g, ' ').replace(/([A-Za-z]+)(\d+)/, '$1 $2').trim();
   }
 
   // Handle Skill Move IDs embedded in name strings
@@ -188,8 +205,6 @@ export function cleanName(name: string, id?: number, type?: 'club' | 'league' | 
     if (type === 'celebration' || name.toLowerCase().includes('celebration')) return CELEBRATIONS[numericId] || `Celebration ${numericId}`;
     if (SKILL_MOVE_NAMES[numericId]) return SKILL_MOVE_NAMES[numericId];
   }
-  
-  if (type === 'program' && PROGRAMS[name]) return PROGRAMS[name];
 
   // 2. Regex Cleaning (Strip Prefixes)
   const cleaned = name

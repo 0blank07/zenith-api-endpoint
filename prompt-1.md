@@ -1,20 +1,21 @@
-blank@zenith-production:~$ node -e "require('dotenv').config(); const { Client } = require('pg'); const c = new Client({host: process.env.PG_HOST, user: process.env.PG_USER, password: process.env.PG_PASSWORD, database:
-     process.env.PG_DATABASE}); async function check(){ await c.connect(); console.log('--- 1. PLAYER STATS ---'); const s = await c.query('SELECT name, ovr, position, team, event FROM player_stats WHERE
-     player_id = 24044726'); console.table(s.rows); console.log('\n--- 2. SKILLS META ---'); const m = await c.query('SELECT * FROM player_skills_meta WHERE player_id = 24044726'); console.table(m.rows);
-     console.log('\n--- 3. AVAILABLE SKILLS ---'); const a = await c.query('SELECT skill_id, is_locked, unlock_requirement_skillname FROM player_available_skills WHERE player_id = 24044726');
-     console.table(a.rows); console.log('\n--- 4. SKILL BOOSTS (Sample) ---'); const b = await c.query('SELECT skill_id, level_number, boost_pace, boost_shooting FROM skill_level_boosts WHERE player_id =
-     24044726 LIMIT 5'); console.table(b.rows); await c.end(); } check();"
-[eval]:2
-     process.env.PG_DATABASE}); async function check(){ await c.connect(); console.log('--- 1. PLAYER STATS ---'); const s = await c.query('SELECT name, ovr, position, team, event FROM player_stats WHERE
-                                                                                                                                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Event name: Event name is coming like this: PROGRAM_UCL26, PROGRAM_TOTS26, PROGRAM_ICONS, PROGRAM_HEROS8 etc this is only few I have said there are many, event name should come like how it is on renderz instead of this code
 
-SyntaxError: Invalid or unexpected token
-    at makeContextifyScript (node:internal/vm:185:14)
-    at node:internal/process/execution:107:22
-    at [eval]-wrapper:6:24
-    at runScript (node:internal/process/execution:101:62)
-    at evalScript (node:internal/process/execution:133:3)
-    at node:internal/main/eval_string:51:3
+nation name: NationName_49, NationName_18, NationName_38, NationName_54 
 
-Node.js v20.20.1
-blank@zenith-production:~$
+club name: TeamName_114154, TeamName_73, TeamName_11, TeamName_114154 
+
+league name: Unknown, Unknown, Unknown, Unknown
+
+traits names: skillmove_name_15, celebration_name_78, skillmove_name_15, skillmove_name_13, celebration_name_38
+
+In nation name, club name, league name, traits names not actually name is coming but the code, I want how it is on renderz same should be here
+
+- and also I think it's better to remove │ 2026-06-04T17:40:24.247Z [warn]: Attempt 3 failed: SESSION_BLOCKED. Retrying in 8000ms...       │
+
+attempt 3rd
+
+because we want fast man not slow
+
+as you know above we took 1.5hrs for 8k players ig we don't have that much time to spend if something wrong occurs
+
+note: don't implement tell me what you understood in summary and also what solution you have to solve these problem 100% sure

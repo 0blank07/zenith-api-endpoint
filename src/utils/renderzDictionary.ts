@@ -313,5 +313,21 @@ export const RENDERZ_DICTIONARY: Record<string, string> = {
   "NAME_SKILL_31021": "Complete Fullback",
   "NAME_SKILL_33051": "Half-Winger",
   "NAME_SKILL_31070": "https://assads.adsboosters.xyz/Pixel.gif",
-  "NAME_SKILL_30041": "Ball-Playing Defender"
+  "NAME_SKILL_30041": "Ball-Playing Defender",
+  "BORDER_SPACE": "AdsCoreLoader",
+  "LIB_VERSION": "1.372.9",
+  "JS_SDK_VERSION": "1.372.9",
+  "DEBUG": "Frank Lampard",
+  "VERSION": "2.0.9",
+  "ENGINE": "St. Patrick",
+  "ARROW_LEFT": "4-4-1-1",
+  "ARROW_RIGHT": "4-4-1-1",
+  "INDEXEDDB": "PROGRAM",
+  "WEBSQL": "+encodeURI(this.DOM.wName());const s=this.getBlock(!1);if(!s)return!1;const o=this.Validator.isInGoogleAdManager();let c=null;this.Hooks.Call(this.Hooks.Events.Formats.Banner.beforeEach,[this.tracker.ID]),this.DOM.css(s,{position:",
+  "LOCALSTORAGE": "LEGENDARY III",
+  "DDTHH": "Box-To-Box",
+  "Z_BLOCK": "https://assads.adsboosters.xyz/Close.png",
+  "Z_DEFLATED": "https://assads.adsboosters.xyz/ArrowDown.png",
+  "LOGOTYP": "TeamName_113287_fut-themed-chinese_Auth-FullChar",
+  "_THRESHOLD": "https://assads.adsboosters.xyz/Close.png"
 };

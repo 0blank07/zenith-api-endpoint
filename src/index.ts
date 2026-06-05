@@ -239,6 +239,27 @@ program
             logger.info(`Captured ${players.length}/${batch.length} players in ${captureTime}s.`);
 
             if (players.length > 0) {
+                // Auto-healing Check
+                const missingForBatch: MissingSkill[] = [];
+                players.forEach(p => {
+                    if (p.skillStyleSkills) {
+                        p.skillStyleSkills.forEach(sk => {
+                            if (!SKILL_BOOSTS[sk.id]) {
+                                missingForBatch.push({ skillId: sk.id, playerId: p.assetId || p.playerId, name: sk.name });
+                            }
+                        });
+                    }
+                });
+                
+                if (missingForBatch.length > 0) {
+                    logger.info(`Detected ${missingForBatch.length} missing skills in batch. Triggering auto-heal...`);
+                    const newlyLearned = await healMissingSkills(missingForBatch);
+                    // Inject into memory so the subsequent savePlayers call uses the fresh data
+                    for (const [id, data] of Object.entries(newlyLearned)) {
+                         SKILL_BOOSTS[Number(id)] = data;
+                    }
+                }
+
                 logger.info(`IMPORTING ${players.length} players to database...`);
                 await dbService.savePlayers(players);
                 newlyInserted.push(...players.map(p => p.assetId));
@@ -271,6 +292,25 @@ program
             break;
           }
           
+          const missingForBatch: MissingSkill[] = [];
+          missing.forEach(p => {
+              if (p.skillStyleSkills) {
+                  p.skillStyleSkills.forEach(sk => {
+                      if (!SKILL_BOOSTS[sk.id]) {
+                          missingForBatch.push({ skillId: sk.id, playerId: p.assetId || p.playerId, name: sk.name });
+                      }
+                  });
+              }
+          });
+          
+          if (missingForBatch.length > 0) {
+              logger.info(`Detected ${missingForBatch.length} missing skills in batch. Triggering auto-heal...`);
+              const newlyLearned = await healMissingSkills(missingForBatch);
+              for (const [id, data] of Object.entries(newlyLearned)) {
+                   SKILL_BOOSTS[Number(id)] = data;
+              }
+          }
+
           await dbService.savePlayers(missing);
           newlyInserted.push(...missing.map(p => p.assetId));
           offset += BATCH_SIZE;

@@ -42,8 +42,8 @@ async function updateDictionary() {
 
     // 3. Extract mappings
     const extracted: Record<string, string> = {};
-    // Broaden regex to find more patterns
-    const mapRegex = /(NAME_SKILL_\d+|skillmove_name_\d+|trait_name_\d+|celebration_name_\d+)\s*[:=]\s*([a-zA-Z0-9_$]+)/g;
+    // Broaden regex to find ALL translation-like patterns
+    const mapRegex = /([A-Za-z]+Name_\d+|PROGRAM_[A-Z0-9_]+|NAME_SKILL_\d+|skillmove_name_\d+|trait_name_\d+|celebration_name_\d+|[A-Z_]{5,}\d*)\s*[:=]\s*([a-zA-Z0-9_$]+)/g;
     let match;
     let newItemsCount = 0;
 

@@ -2,7 +2,7 @@ import { Pool } from 'pg';
 import format from 'pg-format';
 import { Player } from '../types/player';
 import logger from '../utils/logger';
-import { SKILL_BOOSTS, getSkillTitle } from '../utils/dataCleaner';
+import { SKILL_BOOSTS, getSkillTitle, cleanName, getTraitTitle } from '../utils/dataCleaner';
 
 const ALL_BOOST_COLUMNS = [
   'boost_pace', 'boost_shooting', 'boost_passing', 'boost_dribbling', 'boost_defending', 'boost_physical',
@@ -79,7 +79,7 @@ export class PostgresService {
 
     return [
         player.assetId, rank, 0, player.position || '', player.potentialPositions?.join(', ') || '',
-        player.nation?.name || '', player.skillMovesLevel || 0, player.foot === 1 ? 'Left' : 'Right',
+        cleanName(player.nation?.name, player.nation?.id, 'nation'), player.skillMovesLevel || 0, player.foot === 1 ? 'Left' : 'Right',
         5, player.weakFoot || 0, heightFtIn, heightCm, weightKg, player.rating || 0,
         player.stats?.sta || 0, player.avgStats?.avg1 || 0, player.stats?.acc || 0,
         player.stats?.spd || 0, player.avgStats?.avg2 || 0, player.stats?.fin || 0,
@@ -96,13 +96,13 @@ export class PostgresService {
         player.stats?.gkp || 0, player.stats?.han || 0, player.stats?.han || 0,
         player.stats?.ref || 0, player.stats?.ref || 0, player.stats?.gkk || 0,
         player.stats?.gkk || 0, player.auctionable === false, player.added || new Date().toISOString(),
-        player.images?.leagueImage || '', player.traits?.map(t => t.title).join(',') || '',
+        player.images?.leagueImage || '', player.traits?.map(t => getTraitTitle(t.id, t.title)).join(',') || '',
         player.images?.playerCardImage || '', player.images?.playerCardBackground || '',
         player.images?.flagImage || '', player.images?.clubImage || '',
         player.animation?.colors?.rating || '', player.animation?.colors?.position || '',
         player.animation?.colors?.name || '', player.animation?.colors?.level || '',
-        player.workRateAtt || 0, player.workRateDef || 0, player.club?.name || '',
-        playerName, player.source || '',
+        player.workRateAtt || 0, player.workRateDef || 0, cleanName(player.club?.name, player.club?.id, 'club'),
+        playerName, cleanName(player.source, undefined, 'program'),
     ];
   }
 
