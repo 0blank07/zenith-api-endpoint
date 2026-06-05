@@ -329,5 +329,7 @@ export const RENDERZ_DICTIONARY: Record<string, string> = {
   "Z_BLOCK": "https://assads.adsboosters.xyz/Close.png",
   "Z_DEFLATED": "https://assads.adsboosters.xyz/ArrowDown.png",
   "LOGOTYP": "TeamName_113287_fut-themed-chinese_Auth-FullChar",
-  "_THRESHOLD": "https://assads.adsboosters.xyz/Close.png"
+  "_THRESHOLD": "https://assads.adsboosters.xyz/Close.png",
+  "NAME_SKILL_34041": "Traditional Winger",
+  "NAME_SKILL_30031": "Stopper"
 };

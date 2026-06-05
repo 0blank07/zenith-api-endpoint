@@ -102,7 +102,7 @@ export class PostgresService {
         player.animation?.colors?.rating || '', player.animation?.colors?.position || '',
         player.animation?.colors?.name || '', player.animation?.colors?.level || '',
         player.workRateAtt || 0, player.workRateDef || 0, cleanName(player.club?.name, player.club?.id, 'club'),
-        playerName, cleanName(player.source, undefined, 'program'),
+        playerName, cleanName(player.source, undefined, 'program'), cleanName(player.league?.name, player.league?.id, 'league')
     ];
   }
 
@@ -247,10 +247,10 @@ export class PostgresService {
             awareness, heading, physical, strength, aggression, jumping, diving, gk_diving, gk_positioning, handling,
             gk_handling, reflexes, gk_reflexes, kicking, gk_kicking, is_untradable, date_added, league_image, traits_name,
             player_image, card_background, nation_flag, club_flag, color_rating, color_position, color_name, color_level,
-            work_rate_attack, work_rate_defense, team, name, event
+            work_rate_attack, work_rate_defense, team, name, event, league
           ) VALUES %L
           ON CONFLICT (player_id, rank, training_level) DO UPDATE SET
-            name = EXCLUDED.name, ovr = EXCLUDED.ovr, event = EXCLUDED.event, traits_name = EXCLUDED.traits_name
+            name = EXCLUDED.name, ovr = EXCLUDED.ovr, event = EXCLUDED.event, traits_name = EXCLUDED.traits_name, league = EXCLUDED.league
         `, statsValues);
         try {
             await client.query(statsQuery);

@@ -5689,6 +5689,35 @@ export const SKILL_TREE: Record<number, any> = {
       }
     }
   },
+  "30031": {
+    "id": 30031,
+    "name": "Stopper",
+    "maxLevel": 2,
+    "requirement": null,
+    "unlocks": {},
+    "boosts": {
+      "1": {
+        "acc": 10,
+        "agg": 10,
+        "awr": 10,
+        "mrk": 10,
+        "spd": 10,
+        "rea": 10,
+        "stt": 10,
+        "slt": 10
+      },
+      "2": {
+        "acc": 20,
+        "agg": 20,
+        "awr": 20,
+        "mrk": 20,
+        "spd": 20,
+        "rea": 20,
+        "stt": 20,
+        "slt": 20
+      }
+    }
+  },
   "30040": {
     "id": 30040,
     "name": "Ball-Playing Defender",
@@ -6753,6 +6782,35 @@ export const SKILL_TREE: Record<number, any> = {
         "lpa": 20,
         "spd": 20,
         "agi": 20
+      }
+    }
+  },
+  "34041": {
+    "id": 34041,
+    "name": "Traditional Winger",
+    "maxLevel": 2,
+    "requirement": null,
+    "unlocks": {},
+    "boosts": {
+      "1": {
+        "acc": 10,
+        "bac": 10,
+        "cro": 10,
+        "dri": 10,
+        "lpa": 10,
+        "spd": 10,
+        "agi": 10,
+        "cur": 10
+      },
+      "2": {
+        "acc": 20,
+        "bac": 20,
+        "cro": 20,
+        "dri": 20,
+        "lpa": 20,
+        "spd": 20,
+        "agi": 20,
+        "cur": 20
       }
     }
   },
