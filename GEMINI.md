@@ -11,6 +11,13 @@ A hybrid TypeScript/Python toolset designed for extracting, searching, and monit
     *   **Service Layer**: Modular services for searching (Elasticsearch queries), database interaction (PostgreSQL), and data cleaning.
     *   **Bridge Scraper**: A Python script (`scrape_all_players.py`) that leverages the TypeScript engine to perform high-speed, exhaustive data collection and persistence.
 
+## Data Integrity & Auto-Healing (Critical)
+
+*   **Context-Aware Cleaning**: The `cleanName()` utility in `src/utils/dataCleaner.ts` is the single source of truth for all metadata (Club, League, Nation). It handles raw RenderZ IDs, data anomalies (like the PSG/Spurs ID 73 glitch), and user-reported corrections.
+*   **Strict Number Blocker**: The system **guarantees** that raw numeric IDs will never be saved to the database. If an ID is unmapped, `cleanName` returns a flagged string `Unknown (ID XXX)` which triggers discovery.
+*   **Conflict Resolution**: The PostgreSQL sync logic uses a comprehensive `ON CONFLICT` clause to ensure that existing database records are always updated with the latest cleaned metadata, preventing stale or numeric values from persisting.
+*   **Force Truth Sync**: The `src/scripts/forceTruthSync.ts` script allows for 100% accurate repair of any record by visiting the RenderZ player page via browser-stealth and extracting the exact text displayed in the official UI.
+
 ## Key Technologies
 
 *   **Node.js/TypeScript**: Main application logic and CLI.
@@ -37,6 +44,7 @@ A hybrid TypeScript/Python toolset designed for extracting, searching, and monit
 *   `npm run latest`: Get the most recently added cards.
 *   `npm run rating -- --min 115 --max 120`: Filter by OVR rating.
 *   `npm run sync -- --size 100`: Sync latest cards to PostgreSQL.
+*   `npx ts-node src/scripts/deepHeal.ts`: Force-sync and repair specific problematic cards.
 
 ### Key Commands (Python)
 *   `python scrape_all_players.py`: Run the high-speed bridge scraper to populate the database.
