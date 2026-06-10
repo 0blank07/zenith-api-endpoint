@@ -1,56 +1,58 @@
-First problem:
-many players cards still club not showing but numbers example:
-http://localhost:3000/player/c-ronaldo-116-5501524
-Club: 1354
-it should not happen name proper name should show same as renderz not numbers on all cards that we have or will have in future
+blank@zenith-production:/var/www$ cd zenith
+blank@zenith-production:/var/www/zenith$ git pull && rm -rf .next && npm install && npm run build && pm2 restart zenith
+remote: Enumerating objects: 8, done.
+remote: Counting objects: 100% (8/8), done.
+remote: Compressing objects: 100% (3/3), done.
+remote: Total 8 (delta 5), reused 8 (delta 5), pack-reused 0 (from 0)
+Unpacking objects: 100% (8/8), 926 bytes | 42.00 KiB/s, done.
+From https://github.com/7blank-07/Zenith-app-Max
+   322d918..08b1c69  rush       -> origin/rush
+Updating 322d918..08b1c69
+Fast-forward
+ next.config.js                         | 34 +---------------------------------
+ src/lib/server/player-seo-contract.mjs |  3 ++-
+ src/lib/server/prerender-rollout.mjs   | 13 +++++++------
+ 3 files changed, 10 insertions(+), 40 deletions(-)
 
+up to date, audited 74 packages in 5s
 
+9 packages are looking for funding
+  run `npm fund` for details
 
-Second problem:
+3 vulnerabilities (2 moderate, 1 high)
 
-some league names and some club names are wrong showing in the player cards example:
-http://localhost:3000/player/c-ronaldo-116-5501524
-league above link is showing is LALIGA EA SPORTS but actually c-ronaldo doesn't play in that league but instead
-he plays in ROSHN Saudi League
+To address issues that do not require attention, run:
+  npm audit fix
 
-another example:
-http://localhost:3000/player/messi-116-5504523
-this url page is saying:
-messi-116 league is LALIGA EA SPORTS
-and messi 116 club is PSG
-both is wrong 
-real is 
-messi-116 league is Major League Soccer
-and messi-116 club is Inter Miami CF
+To address all issues (including breaking changes), run:
+  npm audit fix --force
 
-Fix this once for all, we don't want to give users wrong information about player card.
-I still don't know what is hard like why you are not solving this properly
-I want you to solve this and it should not happen even after I capture new cards fix it
-league, club should always be correct no matter what
+Run `npm audit` for details.
 
-and also if on capturing new cards if club is a number then it should be automatically be solved same for league etc
+> zenith-app-max@1.0.0 prebuild
+> node scripts/prepare-legacy.mjs
 
-we want 100% right information
+[prepare-legacy] Done: public assets, body HTML, and legacy bundle generated (CSS preserved).
 
-and at last thoroughly test league, event, club we are providing is same as renderz check some card like survey
-I'm giving you some players details page urls of both zenith and renderz players are same so you will able to compare that league, club, event are same
+> zenith-app-max@1.0.0 build
+> next build
 
-Messi 119 ovr:
-http://localhost:3000/player/messi-119-4736465
-https://renderz.app/24/player/24044736
+ ⨯ Failed to load next.config.js, see more info here https://nextjs.org/docs/messages/next-config-error
 
-C. ronaldo 119 ovr:
-http://localhost:3000/player/c-ronaldo-119-4734466
-https://renderz.app/24/player/24044734
+> Build error occurred
+/var/www/zenith/next.config.js:1
+/** @type {import('next').NextConfig} */`nconst nextConfig = {`n  reactStrictMode: false,`n  staticPageGenerationTimeout: 600,`n  eslint: {`n    ignoreDuringBuilds: true,`n  },`n  typescript: {`n    ignoreBuildErrors: true,`n  },`n  async redirects() {`n    return [`n      {`n        source: '/compare',`n        destination: '/tools/player-compare',`n        permanent: true,`n      },`n      {`n        source: '/watchlist',`n        destination: '/tools/watchlist',`n        permanent: true,`n      }`n    ];`n  }`n};`n`nmodule.exports = nextConfig;
+                                                               ^
 
-Dembele 120 ovr:
-http://localhost:3000/player/dembele-120-6004446
-https://renderz.app/24/player/24046004
-
-Lamine Yamal 119 ovr:
-http://localhost:3000/player/lamine-yamal-119-4716470
-https://renderz.app/24/player/24044716
-
-Lienhart 109 ovr:
-http://localhost:3000/player/lienhart-95-5126588
-https://renderz.app/24/player/24005126
+SyntaxError: Unexpected identifier 'n'
+    at wrapSafe (node:internal/modules/cjs/loader:1464:18)
+    at Module._compile (node:internal/modules/cjs/loader:1495:20)
+    at Module._extensions..js (node:internal/modules/cjs/loader:1623:10)
+    at Module.load (node:internal/modules/cjs/loader:1266:32)
+    at Module._load (node:internal/modules/cjs/loader:1091:12)
+    at cjsLoader (node:internal/modules/esm/translators:298:15)
+    at ModuleWrap.<anonymous> (node:internal/modules/esm/translators:240:7)
+    at ModuleJob.run (node:internal/modules/esm/module_job:325:25)
+    at async ModuleLoader.import (node:internal/modules/esm/loader:606:24)
+    at async loadConfig (/var/www/zenith/node_modules/next/dist/server/config.js:711:36)
+blank@zenith-production:/var/www/zenith$ n\

@@ -257,7 +257,6 @@ export class SearchService {
     const fetchIdsBatch = async (size: number, searchAfter?: any[], tokens?: any) => {
         const body: any = {
             query: { bool: { must: [], should: [], must_not: [] } },
-            _source: ["assetId"],
             sort: [{ assetId: { order: "desc" } }],
             size: size
         };

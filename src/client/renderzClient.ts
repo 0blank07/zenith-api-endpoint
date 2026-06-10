@@ -13,7 +13,7 @@ export class RenderzClient {
     this.sessionManager = new SessionManager();
     this.axiosInstance = axios.create({
       baseURL: CONSTANTS.BASE_URL,
-      timeout: 10000,
+      timeout: 30000,
     });
 
     this.setupInterceptors();

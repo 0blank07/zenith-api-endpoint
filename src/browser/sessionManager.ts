@@ -140,53 +140,30 @@ export class SessionManager {
         logger.warn('Failed to force interaction via DOM evaluation.');
       }
 
-      // Final Check & LocalStorage / Svelte Fallback
-      let waitTime = 0;
-      while (waitTime < 15000 && (!sessionData.token || !sessionData.fingerprint)) {
-        // Try to pull from localStorage or SvelteKit internals if request interception is slow/fails
+      // Check LocalStorage / Svelte Fallback just in case they return
+      try {
         const ls = await page.evaluate(() => {
           let t = localStorage.getItem('token');
           let f = localStorage.getItem('fingerprint');
-          
-          // If not in localStorage, try looking at the SvelteKit state script tag
-          if (!t) {
-             const scripts = Array.from(document.querySelectorAll('script'));
-             for (const s of scripts) {
-                 if (s.textContent && s.textContent.includes('x-secure-token')) {
-                     const match = s.textContent.match(/"x-secure-token":"([^"]+)"/);
-                     if (match) t = match[1];
-                 }
-             }
-          }
           return { t, f };
-        }).catch(() => ({ t: null, f: null }));
+        });
 
-        if (ls.t && !sessionData.token) {
-           sessionData.token = ls.t;
-           logger.info('Captured x-secure-token from internal state fallback');
-        }
-        if (ls.f && !sessionData.fingerprint) {
-           sessionData.fingerprint = ls.f;
-           logger.info('Captured x-client-fingerprint from local storage fallback');
-        }
-
-        if (sessionData.token) break; // Token is the critical one
-
-        await page.waitForTimeout(1000);
-        waitTime += 1000;
-      }
+        if (ls.t && !sessionData.token) sessionData.token = ls.t;
+        if (ls.f && !sessionData.fingerprint) sessionData.fingerprint = ls.f;
+      } catch (e) {}
 
       const cookies = await context.cookies();
       sessionData.cookies = cookies.map(c => `${c.name}=${c.value}`).join('; ');
       sessionData.expiresAt = Date.now() + CONSTANTS.SESSION_TIMEOUT;
 
-      if (!sessionData.token) {
-        throw new Error('Failed to extract security tokens from request headers');
-      }
+      // RenderZ no longer requires x-secure-token. Cookies are enough.
+      // if (!sessionData.token) {
+      //   throw new Error('Failed to extract security tokens from request headers');
+      // }
 
       const finalSession = sessionData as SessionData;
       fs.writeFileSync(this.cachePath, JSON.stringify(finalSession, null, 2));
-      
+
       return finalSession;
     } finally {
       await browser.close();

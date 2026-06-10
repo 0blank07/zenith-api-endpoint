@@ -190,147 +190,96 @@ program
 
 program
   .command('sync')
-  .description('Sync latest cards to PostgreSQL')
-  .option('-s, --size <number>', 'Number of cards to sync in single batch', '40')
-  .option('-a, --audit', 'Run a deep audit by scanning latest X cards')
-  .option('-m, --missing', 'Perform a full scan and sync all missing players')
+  .description('Sync cards to PostgreSQL')
+  .option('-s, --size <number>', 'Number of cards per batch', '40')
+  .option('-a, --audit', 'Deep audit (Refresh existing data)')
+  .option('-m, --missing', 'Full discovery (Scan all IDs)')
   .action(async (options) => {
     try {
       await dbService.initSchema();
       const backupPath = './latest_sync_rollback.json';
-      
+      const BATCH_SIZE = parseInt(options.size) || 40;
+      let newlyInserted: number[] = [];
+
       if (options.missing) {
         logger.info('--- RUNNING FULL DISCOVERY SYNC ---');
-        // 1. Fetch ALL IDs from RenderZ (High Speed Scan)
         const renderzIds = await searchService.getAllAssetIds();
-        
-        if (renderzIds.length === 0) {
-            logger.error('Failed to discover any players on RenderZ. Discovery phase aborted.');
-            return;
-        }
-
-        // 2. Fetch ALL IDs from DB
+        if (renderzIds.length === 0) return;
         const existingIds = await dbService.getAllAssetIds();
-        
-        // 3. Find IDs that exist on RenderZ but not in DB
         const missingIds = renderzIds.filter(id => !existingIds.has(id));
-        logger.info(`Full Scan Results: RenderZ has ${renderzIds.length} players. DB has ${existingIds.size} players.`);
-        logger.info(`Identified ${missingIds.length} missing players.`);
+        logger.info(`Found ${missingIds.length} missing players.`);
 
-        if (missingIds.length === 0) {
-            logger.info('Database is already perfectly in sync with RenderZ.');
-            return;
-        }
-
-        // 4. Scrape and sync missing players in batches
-        const newlyInserted = [];
-        const BATCH_SIZE = 100; // Reduced for better stability
-        for (let i = 0; i < missingIds.length; i += BATCH_SIZE) {
-            const batch = missingIds.slice(i, i + BATCH_SIZE);
-            const batchNum = Math.floor(i / BATCH_SIZE) + 1;
-            const totalBatches = Math.ceil(missingIds.length / BATCH_SIZE);
-            
-            logger.info(`--- BATCH ${batchNum}/${totalBatches}: CAPTURING ${batch.length} PLAYERS ---`);
-            const startTime = Date.now();
-            
+        for (let i = 0; i < missingIds.length; i += 100) {
+            const batch = missingIds.slice(i, i + 100);
             const players = await searchService.getPlayersByAssetIds(batch);
-            
-            const captureTime = ((Date.now() - startTime) / 1000).toFixed(1);
-            logger.info(`Captured ${players.length}/${batch.length} players in ${captureTime}s.`);
-
             if (players.length > 0) {
-                // Auto-healing Check
                 const missingForBatch: MissingSkill[] = [];
-                players.forEach(p => {
-                    if (p.skillStyleSkills) {
-                        p.skillStyleSkills.forEach(sk => {
-                            if (!SKILL_BOOSTS[sk.id]) {
-                                missingForBatch.push({ skillId: sk.id, playerId: p.assetId || p.playerId, name: sk.name });
-                            }
-                        });
-                    }
-                });
-                
+                players.forEach(p => p.skillStyleSkills?.forEach(sk => {
+                    if (!SKILL_BOOSTS[sk.id]) missingForBatch.push({ skillId: sk.id, playerId: p.assetId || p.playerId, name: sk.name });
+                }));
                 if (missingForBatch.length > 0) {
-                    logger.info(`Detected ${missingForBatch.length} missing skills in batch. Triggering auto-heal...`);
-                    const newlyLearned = await healMissingSkills(missingForBatch);
-                    // Inject into memory so the subsequent savePlayers call uses the fresh data
-                    for (const [id, data] of Object.entries(newlyLearned)) {
-                         SKILL_BOOSTS[Number(id)] = data;
-                    }
+                    const learned = await healMissingSkills(missingForBatch);
+                    Object.assign(SKILL_BOOSTS, learned);
                 }
-
-                logger.info(`IMPORTING ${players.length} players to database...`);
                 await dbService.savePlayers(players);
                 newlyInserted.push(...players.map(p => p.assetId));
-                logger.info(`Import complete.`);
             }
         }
-        fs.writeFileSync(backupPath, JSON.stringify(newlyInserted));
-        logger.info('Full Discovery Sync complete.');
-
-      } else if (options.audit) {
-        logger.info('--- RUNNING BOOKMARK SYNC ---');
-        const latestId = await dbService.getLatestAssetId();
-        logger.info(`Latest Asset ID in DB: ${latestId || 'None'}`);
-        
+      } else {
+        // DEFAULT SYNC or AUDIT
+        logger.info(options.audit ? '--- RUNNING AUDIT SYNC ---' : '--- RUNNING STANDARD SYNC ---');
         let offset = 0;
         let keepFetching = true;
-        const BATCH_SIZE = 40;
-        let newlyInserted: number[] = [];
+        let consecutiveFullBatches = 0; // Buffer to handle "out of order" additions
         
+        // Safety Buffer: Check up to 5 batches (200 players) deep for out-of-order cards
+        const MAX_SAFETY_BUFFER = 5;
+
         while (keepFetching) {
-          const players = await searchService.search({ sortBy: 'added', sortOrder: 'desc', from: offset, size: BATCH_SIZE });
+          // SORT BY ASSET_ID DESC instead of added to ensure strictly newest cards are checked first
+          const players = await searchService.search({ sortBy: 'assetId', sortOrder: 'desc', from: offset, size: BATCH_SIZE });
           if (players.length === 0) break;
           
-          // Actually, let's just fetch existing IDs to be completely safe during bookmark sync
           const existingIds = await dbService.getAllAssetIds();
           const missing = players.filter(p => !existingIds.has(p.assetId));
           
-          if (missing.length === 0) {
-            logger.info('Caught up to existing database records. Stopping.');
-            break;
+          if (missing.length === 0 && !options.audit) {
+            consecutiveFullBatches++;
+            if (consecutiveFullBatches >= MAX_SAFETY_BUFFER) {
+                logger.info(`Caught up to database records (Checked ${MAX_SAFETY_BUFFER} batches deep). Stopping.`);
+                break;
+            }
+            logger.info(`Batch already in DB. Checking batch ${consecutiveFullBatches+1}/${MAX_SAFETY_BUFFER} for safety...`);
+          } else {
+            consecutiveFullBatches = 0;
+            const playersToProcess = options.audit ? players : missing;
+            
+            if (playersToProcess.length > 0) {
+                const missingForBatch: MissingSkill[] = [];
+                playersToProcess.forEach(p => p.skillStyleSkills?.forEach(sk => {
+                    if (!SKILL_BOOSTS[sk.id]) missingForBatch.push({ skillId: sk.id, playerId: p.assetId || p.playerId, name: sk.name });
+                }));
+                if (missingForBatch.length > 0) {
+                    const learned = await healMissingSkills(missingForBatch);
+                    Object.assign(SKILL_BOOSTS, learned);
+                }
+                await dbService.savePlayers(playersToProcess);
+                newlyInserted.push(...playersToProcess.map(p => p.assetId));
+            }
           }
-          
-          const missingForBatch: MissingSkill[] = [];
-          missing.forEach(p => {
-              if (p.skillStyleSkills) {
-                  p.skillStyleSkills.forEach(sk => {
-                      if (!SKILL_BOOSTS[sk.id]) {
-                          missingForBatch.push({ skillId: sk.id, playerId: p.assetId || p.playerId, name: sk.name });
-                      }
-                  });
-              }
-          });
-          
-          if (missingForBatch.length > 0) {
-              logger.info(`Detected ${missingForBatch.length} missing skills in batch. Triggering auto-heal...`);
-              const newlyLearned = await healMissingSkills(missingForBatch);
-              for (const [id, data] of Object.entries(newlyLearned)) {
-                   SKILL_BOOSTS[Number(id)] = data;
-              }
-          }
-
-          await dbService.savePlayers(missing);
-          newlyInserted.push(...missing.map(p => p.assetId));
           offset += BATCH_SIZE;
-        }
-        
-        if (newlyInserted.length > 0) {
-           fs.writeFileSync(backupPath, JSON.stringify(newlyInserted));
+          // Hard cap for standard sync to prevent infinite loops (scans top 2000 IDs)
+          if (offset > 2000 && !options.audit) break; 
         }
       }
       
-      if (needsDictionaryUpdate) {
-        logger.info('Detected unknown traits/celebrations. Triggering auto-heal for dictionary...');
-        await runCommand('npm run update-dict');
-      }
+      if (newlyInserted.length > 0) fs.writeFileSync(backupPath, JSON.stringify(newlyInserted));
+      if (needsDictionaryUpdate) await runCommand('npm run update-dict');
       await healMissingSkills(missingSkillsToHeal);
       if (missingCelebrationsToHeal.length > 0) {
         const { healMissingCelebrations } = require('./scripts/healTraits');
         await healMissingCelebrations(missingCelebrationsToHeal);
       }
-      
       await dbService.disconnect();
     } catch (error: any) {
       logger.error(`Sync failed: ${error.message}`);
@@ -339,177 +288,37 @@ program
 
 function displayPlayerDetail(player: Player) {
   const c = player.animation?.colors || { rating: '#FFFFFF', name: '#FFFFFF', position: '#FFFFFF' };
-  
-  // 1. Calculate unlocked positions from skill tree
   const skillUnlocks = new Set<string>();
-  if (player.skillStyleSkills) {
-    player.skillStyleSkills.forEach(sk => {
-      const data = SKILL_BOOSTS[sk.id];
-      if (data?.unlocks) {
-        Object.values(data.unlocks).forEach((posList: any) => {
-          posList.forEach((p: string) => skillUnlocks.add(p));
-        });
-      }
-    });
-  }
+  player.skillStyleSkills?.forEach(sk => {
+    const data = SKILL_BOOSTS[sk.id];
+    if (data?.unlocks) Object.values(data.unlocks).forEach((posList: any) => posList.forEach((p: string) => skillUnlocks.add(p)));
+  });
   const allAltPos = Array.from(new Set([...(player.potentialPositions || []), ...skillUnlocks]));
-
-  const traits = player.traits || [];
 
   console.log(`\n===========================================================`);
   const displayName = player.cardName || player.commonName || `${player.firstName} ${player.lastName}` || 'Unknown';
   console.log(`   DEEP DIVE: ${displayName.toUpperCase()} [OVR: ${player.rating}]`);
   console.log(`===========================================================`);
-  
-  console.log(`\n[ ASSETS & COLORS ]`);
-  console.log(`- OVR Color:      ${c.rating}`);
-  console.log(`- Name Color:     ${c.name}`);
-  console.log(`- Pos Color:      ${c.position}`);
-  console.log(`- Player Img:     ${player.images.playerCardImage}`);
-  console.log(`- BG Image:       ${player.images.playerCardBackground}`);
-  console.log(`- Flag Img:       ${player.images.flagImage}`);
-  console.log(`- Club Img:       ${player.images.clubImage}`);
-  console.log(`- League Img:     ${player.images.leagueImage}`);
-
-  console.log(`\n[ IDENTITY & PROFILE ]`);
+  console.log(`\n[ Identity & Profile ]`);
   console.log(`- Full Name:      ${player.firstName} ${player.lastName}`);
-  console.log(`- Asset ID:       ${player.assetId} (Player ID: ${player.playerId})`);
+  console.log(`- Asset ID:       ${player.assetId}`);
   console.log(`- Position:       ${player.position}`);
-  console.log(`- Alt Positions:  ${allAltPos.join(', ') || 'None'}`);
-  console.log(`- Height/Weight:  ${player.height} cm / ${player.weight} kg`);
-  console.log(`- Foot:           ${player.foot === 1 ? 'Left' : 'Right'} (WF: ${player.weakFoot}/5)`);
-  console.log(`- Work Rate:      ATT: ${getWorkRateLabel(player.workRateAtt)} | DEF: ${getWorkRateLabel(player.workRateDef)}`);
-  console.log(`- Birthday:       ${new Date(player.birthday).toLocaleDateString()}`);
   console.log(`- Club:           ${cleanName(player.club.name, player.club.id, 'club')} (ID: ${player.club.id})`);
   console.log(`- League:         ${cleanName(player.league.name, player.league.id, 'league')} (ID: ${player.league.id})`);
   console.log(`- Nation:         ${cleanName(player.nation.name, player.nation.id, 'nation')} (ID: ${player.nation.id})`);
   console.log(`- Program:        ${cleanName(player.source, undefined, 'program')}`);
-  console.log(`- Bio:            ${player.bio}`);
 
-  console.log(`\n[ BASE STATS ]`);
+  console.log(`\n[ Base Stats ]`);
   const mainStats = getMainStats(player);
   console.log(mainStats.map(s => ` ${s.label}: ${s.value} `).join(' | '));
-
-  console.log(`\n[ DETAILED ATTRIBUTES ]`);
-  const s = player.stats;
-  console.log(` PACE:       Acc: ${s.acc}  | Spd: ${s.spd}`);
-  console.log(` SHOOTING:   Fin: ${s.fin}  | ShP: ${s.sho} | Lng: ${s.lsa} | Vol: ${s.vol} | Pen: ${s.pen} | Pos: ${s.pos}`);
-  console.log(` PASSING:    ShP: ${s.spa}  | Lng: ${s.lpa} | Vis: ${s.vis} | Cro: ${s.cro} | Cur: ${s.cur} | FrK: ${s.frk}`);
-  console.log(` DRIBBLING:  Dri: ${s.dri}  | Agi: ${s.agi} | Bal: ${s.bal} | BaC: ${s.bac} | Rea: ${s.rea}`);
-  console.log(` DEFENDING:  Mrk: ${s.mrk}  | StT: ${s.stt} | SlT: ${s.slt} | Hea: ${s.hea} | Awr: ${s.awr}`);
-  console.log(` PHYSICAL:   Str: ${s.str}  | Agg: ${s.agg} | Jmp: ${s.jmp} | Sta: ${s.sta}`);
-  if (player.position === 'GK') {
-    console.log(` GOALKEEP:   Div: ${s.gkd}  | Han: ${s.han} | Kic: ${s.gkk} | Pos: ${s.gkp} | Ref: ${s.ref}`);
-  }
-  console.log(` TOTAL:      ${s.total}`);
-
-  console.log(`\n[ TRAITS ]`);
-  if (traits.length > 0) {
-    traits.forEach(t => {
-      const title = getTraitTitle(t.id, t.title);
-      // If title contains "Celebration" or "Trait" followed by a number, it means it was a fallback
-      if (/(Celebration|Trait|Skill Move) \d+/.test(title)) {
-        needsDictionaryUpdate = true;
-        const match = title.match(/Celebration (\d+)/);
-        if (match) {
-            missingCelebrationsToHeal.push({
-                assetId: player.assetId,
-                celebrationId: parseInt(match[1])
-            });
-        }
-      }
-      console.log(`- ${title} [${t.image}]`);
-    });
-  } else {
-    console.log(`- No specialized traits listed`);
-  }
-
-  console.log(`\n[ SKILL MOVE REQUIREMENTS ]`);
-  const moves = getSkillRequirements(player.skillMovesLevel);
-  console.log(`- PRIMARY:   ${cleanName(player.skillMoves?.title || 'Unknown', player.skillMoves?.id, 'skill_move')}`);
-  console.log(`- AVAILABLE: ${moves.available.map(m => m.name).join(', ')}`);
-  console.log(`- LOCKED:    ${moves.locked.map(m => `${m.name} (${m.stars}★)`).join(', ') || 'None'}`);
-
-  console.log(`\n[ SKILL PROGRESSION TREE ]`);
-  if (player.skillStyleSkills && player.skillStyleSkills.length > 0) {
-    // 1. Get all skills data for this player
-    const playerSkills = player.skillStyleSkills.map(sk => ({
-      ...sk,
-      data: SKILL_BOOSTS[sk.id],
-      title: getSkillTitle(sk.id, sk.name, sk.image)
-    }));
-
-    // 2. Identify the Tiers by following the chain on the card
-    const tier1 = playerSkills.find(s => s.data && s.data.requirement === null);
-    const tier2 = playerSkills.find(s => s.data && s.data.requirement && tier1 && s.data.requirement.skillId === tier1.id);
-    
-    player.skillStyleSkills.forEach((sk) => {
-      const title = getSkillTitle(sk.id, sk.name, sk.image);
-      console.log(`\n> SKILL: ${title}`);
-      console.log(`  Icon: ${sk.image}`);
-      
-      const skillData = SKILL_BOOSTS[sk.id];
-      if (skillData) {
-        // Dynamic Requirement Logic (Follow the Chain)
-        let requirementText = '';
-        
-        const isTier1 = tier1 && sk.id === tier1.id;
-        const isTier2 = tier2 && sk.id === tier2.id;
-        const isTier3 = !isTier1 && !isTier2;
-
-        if (isTier2 && tier1) {
-          requirementText = `${tier1.title} Lvl 2`;
-        } else if (isTier3 && tier2) {
-          requirementText = `${tier2.title} Lvl 2`;
-        } else if (isTier3 && tier1 && !tier2) {
-          // Fallback if card skips a tier
-          requirementText = `${tier1.title} Lvl 2`;
-        }
-
-        if (requirementText) console.log(`  Requirement: ${requirementText}`);
-
-        for (let lvl = 1; lvl <= 3; lvl++) {
-          const details = getSkillDetails(sk.id, lvl);
-          if (details) {
-            let line = `  [Level ${lvl}] Boosts: ${details.boosts.join(', ')}`;
-            if (details.unlockedPositions.length > 0) {
-              line += ` | UNLOCKS: ${details.unlockedPositions.join(', ')}`;
-            }
-            console.log(line);
-          }
-        }
-      } else {
-        console.log(`  (No details available for this skill)`);
-        missingSkillsToHeal.push({
-          skillId: sk.id,
-          playerId: player.playerId,
-          name: title
-        });
-      }
-    });
-  }
-
   console.log(`\n===========================================================\n`);
 }
 
 function displayPlayers(players: Player[]) {
-  if (players.length === 0) {
-    console.log('No players found.');
-    return;
-  }
-
-  // Iterate through all players and show full details for each
-  for (const player of players) {
-    displayPlayerDetail(player);
-  }
-  
+  if (players.length === 0) { console.log('No players found.'); return; }
+  for (const player of players) displayPlayerDetail(player);
   console.log(`\nTotal results displayed: ${players.length}`);
 }
 
 program.parse(process.argv);
-
-// Handle graceful shutdown
-process.on('SIGINT', () => {
-  logger.info('Shutting down...');
-  process.exit(0);
-});
+process.on('SIGINT', () => { logger.info('Shutting down...'); process.exit(0); });

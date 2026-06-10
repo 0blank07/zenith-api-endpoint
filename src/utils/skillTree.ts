@@ -6695,6 +6695,35 @@ export const SKILL_TREE: Record<number, any> = {
       }
     }
   },
+  "34021": {
+    "id": 34021,
+    "name": "NAME_SKILL_34020",
+    "maxLevel": 2,
+    "requirement": null,
+    "unlocks": {},
+    "boosts": {
+      "1": {
+        "acc": 10,
+        "bac": 10,
+        "cro": 10,
+        "lpa": 10,
+        "spd": 10,
+        "spa": 10,
+        "agi": 10,
+        "vis": 10
+      },
+      "2": {
+        "acc": 20,
+        "bac": 20,
+        "cro": 20,
+        "lpa": 20,
+        "spd": 20,
+        "spa": 20,
+        "agi": 20,
+        "vis": 20
+      }
+    }
+  },
   "34030": {
     "id": 34030,
     "name": "Complete Wide Midfielder",
@@ -7443,6 +7472,35 @@ export const SKILL_TREE: Record<number, any> = {
         "spa": 20,
         "str": 20,
         "bal": 20
+      }
+    }
+  },
+  "37041": {
+    "id": 37041,
+    "name": "NAME_SKILL_37040",
+    "maxLevel": 2,
+    "requirement": null,
+    "unlocks": {},
+    "boosts": {
+      "1": {
+        "acc": 10,
+        "bac": 10,
+        "hea": 10,
+        "spd": 10,
+        "spa": 10,
+        "fin": 10,
+        "str": 10,
+        "jmp": 10
+      },
+      "2": {
+        "acc": 20,
+        "bac": 20,
+        "hea": 20,
+        "spd": 20,
+        "spa": 20,
+        "fin": 20,
+        "str": 20,
+        "jmp": 20
       }
     }
   },
