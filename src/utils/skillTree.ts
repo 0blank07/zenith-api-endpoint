@@ -451,6 +451,171 @@ export const SKILL_TREE: Record<number, any> = {
       }
     }
   },
+  "1410": {
+    "id": 1410,
+    "name": "NAME_SKILL_1010",
+    "maxLevel": 3,
+    "requirement": null,
+    "unlocks": {
+      "2": [
+        "LW"
+      ],
+      "3": [
+        "LW"
+      ]
+    },
+    "boosts": {
+      "1": {
+        "fin": 7,
+        "sho": 7,
+        "lsa": 7
+      },
+      "2": {
+        "fin": 14,
+        "sho": 14,
+        "lsa": 14
+      },
+      "3": {
+        "fin": 21,
+        "sho": 21,
+        "lsa": 21
+      }
+    }
+  },
+  "1420": {
+    "id": 1420,
+    "name": "NAME_SKILL_1020",
+    "maxLevel": 3,
+    "requirement": null,
+    "unlocks": {
+      "2": [
+        "LW"
+      ],
+      "3": [
+        "LW"
+      ]
+    },
+    "boosts": {
+      "1": {
+        "lpa": 7,
+        "spa": 7,
+        "vis": 7
+      },
+      "2": {
+        "lpa": 14,
+        "spa": 14,
+        "vis": 14
+      },
+      "3": {
+        "lpa": 21,
+        "spa": 21,
+        "vis": 21
+      }
+    }
+  },
+  "1430": {
+    "id": 1430,
+    "name": "NAME_SKILL_1030",
+    "maxLevel": 3,
+    "requirement": null,
+    "unlocks": {
+      "2": [
+        "LW"
+      ],
+      "3": [
+        "LW"
+      ]
+    },
+    "boosts": {
+      "1": {
+        "acc": 7,
+        "rea": 7,
+        "agi": 7
+      },
+      "2": {
+        "acc": 14,
+        "rea": 14,
+        "agi": 14
+      },
+      "3": {
+        "acc": 21,
+        "rea": 21,
+        "agi": 21
+      }
+    }
+  },
+  "1440": {
+    "id": 1440,
+    "name": "NAME_SKILL_1040",
+    "maxLevel": 1,
+    "requirement": {
+      "skillId": 1410,
+      "level": 3
+    },
+    "unlocks": {
+      "1": [
+        "LW"
+      ]
+    },
+    "boosts": {
+      "1": {
+        "hea": 15,
+        "fin": 15,
+        "sho": 15,
+        "pos": 15,
+        "lsa": 15,
+        "vol": 15
+      }
+    }
+  },
+  "1450": {
+    "id": 1450,
+    "name": "NAME_SKILL_1050",
+    "maxLevel": 1,
+    "requirement": {
+      "skillId": 1420,
+      "level": 3
+    },
+    "unlocks": {
+      "1": [
+        "LW"
+      ]
+    },
+    "boosts": {
+      "1": {
+        "bac": 15,
+        "spa": 15,
+        "str": 15,
+        "pos": 15,
+        "bal": 15,
+        "vis": 15
+      }
+    }
+  },
+  "1460": {
+    "id": 1460,
+    "name": "NAME_SKILL_1060",
+    "maxLevel": 1,
+    "requirement": {
+      "skillId": 1430,
+      "level": 3
+    },
+    "unlocks": {
+      "1": [
+        "LW"
+      ]
+    },
+    "boosts": {
+      "1": {
+        "bac": 15,
+        "dri": 15,
+        "spd": 15,
+        "sho": 15,
+        "pos": 15,
+        "agi": 15
+      }
+    }
+  },
   "2010": {
     "id": 2010,
     "name": "Defending",
@@ -1063,6 +1228,171 @@ export const SKILL_TREE: Record<number, any> = {
       }
     }
   },
+  "2610": {
+    "id": 2610,
+    "name": "NAME_SKILL_2080",
+    "maxLevel": 3,
+    "requirement": null,
+    "unlocks": {
+      "2": [
+        "CAM"
+      ],
+      "3": [
+        "CAM"
+      ]
+    },
+    "boosts": {
+      "1": {
+        "awr": 7,
+        "pos": 7,
+        "vis": 7
+      },
+      "2": {
+        "awr": 14,
+        "pos": 14,
+        "vis": 14
+      },
+      "3": {
+        "awr": 21,
+        "pos": 21,
+        "vis": 21
+      }
+    }
+  },
+  "2620": {
+    "id": 2620,
+    "name": "NAME_SKILL_2020",
+    "maxLevel": 3,
+    "requirement": null,
+    "unlocks": {
+      "2": [
+        "CAM"
+      ],
+      "3": [
+        "CAM"
+      ]
+    },
+    "boosts": {
+      "1": {
+        "lpa": 7,
+        "spa": 7,
+        "vis": 7
+      },
+      "2": {
+        "lpa": 14,
+        "spa": 14,
+        "vis": 14
+      },
+      "3": {
+        "lpa": 21,
+        "spa": 21,
+        "vis": 21
+      }
+    }
+  },
+  "2630": {
+    "id": 2630,
+    "name": "NAME_SKILL_2030",
+    "maxLevel": 3,
+    "requirement": null,
+    "unlocks": {
+      "2": [
+        "CAM"
+      ],
+      "3": [
+        "CAM"
+      ]
+    },
+    "boosts": {
+      "1": {
+        "bac": 7,
+        "str": 7,
+        "bal": 7
+      },
+      "2": {
+        "bac": 14,
+        "str": 14,
+        "bal": 14
+      },
+      "3": {
+        "bac": 21,
+        "str": 21,
+        "bal": 21
+      }
+    }
+  },
+  "2640": {
+    "id": 2640,
+    "name": "NAME_SKILL_2090",
+    "maxLevel": 1,
+    "requirement": {
+      "skillId": 2610,
+      "level": 3
+    },
+    "unlocks": {
+      "1": [
+        "CAM"
+      ]
+    },
+    "boosts": {
+      "1": {
+        "awr": 15,
+        "dri": 15,
+        "spa": 15,
+        "pos": 15,
+        "agi": 15,
+        "vis": 15
+      }
+    }
+  },
+  "2650": {
+    "id": 2650,
+    "name": "NAME_SKILL_2050",
+    "maxLevel": 1,
+    "requirement": {
+      "skillId": 2620,
+      "level": 3
+    },
+    "unlocks": {
+      "1": [
+        "CAM"
+      ]
+    },
+    "boosts": {
+      "1": {
+        "bac": 15,
+        "dri": 15,
+        "lpa": 15,
+        "spa": 15,
+        "agi": 15,
+        "vis": 15
+      }
+    }
+  },
+  "2660": {
+    "id": 2660,
+    "name": "NAME_SKILL_2060",
+    "maxLevel": 1,
+    "requirement": {
+      "skillId": 2630,
+      "level": 3
+    },
+    "unlocks": {
+      "1": [
+        "CAM"
+      ]
+    },
+    "boosts": {
+      "1": {
+        "bac": 15,
+        "spa": 15,
+        "sta": 15,
+        "rea": 15,
+        "bal": 15,
+        "vis": 15
+      }
+    }
+  },
   "3010": {
     "id": 3010,
     "name": "Defending",
@@ -1611,6 +1941,171 @@ export const SKILL_TREE: Record<number, any> = {
       }
     }
   },
+  "3610": {
+    "id": 3610,
+    "name": "NAME_SKILL_3010",
+    "maxLevel": 3,
+    "requirement": null,
+    "unlocks": {
+      "2": [
+        "CDM"
+      ],
+      "3": [
+        "CDM"
+      ]
+    },
+    "boosts": {
+      "1": {
+        "awr": 7,
+        "mrk": 7,
+        "stt": 7
+      },
+      "2": {
+        "awr": 14,
+        "mrk": 14,
+        "stt": 14
+      },
+      "3": {
+        "awr": 21,
+        "mrk": 21,
+        "stt": 21
+      }
+    }
+  },
+  "3620": {
+    "id": 3620,
+    "name": "NAME_SKILL_3020",
+    "maxLevel": 3,
+    "requirement": null,
+    "unlocks": {
+      "2": [
+        "CDM"
+      ],
+      "3": [
+        "CDM"
+      ]
+    },
+    "boosts": {
+      "1": {
+        "lpa": 7,
+        "spa": 7,
+        "vis": 7
+      },
+      "2": {
+        "lpa": 14,
+        "spa": 14,
+        "vis": 14
+      },
+      "3": {
+        "lpa": 21,
+        "spa": 21,
+        "vis": 21
+      }
+    }
+  },
+  "3630": {
+    "id": 3630,
+    "name": "NAME_SKILL_3030",
+    "maxLevel": 3,
+    "requirement": null,
+    "unlocks": {
+      "2": [
+        "CDM"
+      ],
+      "3": [
+        "CDM"
+      ]
+    },
+    "boosts": {
+      "1": {
+        "bac": 7,
+        "str": 7,
+        "bal": 7
+      },
+      "2": {
+        "bac": 14,
+        "str": 14,
+        "bal": 14
+      },
+      "3": {
+        "bac": 21,
+        "str": 21,
+        "bal": 21
+      }
+    }
+  },
+  "3640": {
+    "id": 3640,
+    "name": "NAME_SKILL_3040",
+    "maxLevel": 1,
+    "requirement": {
+      "skillId": 3610,
+      "level": 3
+    },
+    "unlocks": {
+      "1": [
+        "CDM"
+      ]
+    },
+    "boosts": {
+      "1": {
+        "awr": 15,
+        "hea": 15,
+        "mrk": 15,
+        "str": 15,
+        "bal": 15,
+        "stt": 15
+      }
+    }
+  },
+  "3650": {
+    "id": 3650,
+    "name": "NAME_SKILL_3050",
+    "maxLevel": 1,
+    "requirement": {
+      "skillId": 3620,
+      "level": 3
+    },
+    "unlocks": {
+      "1": [
+        "CDM"
+      ]
+    },
+    "boosts": {
+      "1": {
+        "bac": 15,
+        "lpa": 15,
+        "mrk": 15,
+        "spa": 15,
+        "stt": 15,
+        "vis": 15
+      }
+    }
+  },
+  "3660": {
+    "id": 3660,
+    "name": "NAME_SKILL_3060",
+    "maxLevel": 1,
+    "requirement": {
+      "skillId": 3630,
+      "level": 3
+    },
+    "unlocks": {
+      "1": [
+        "CDM"
+      ]
+    },
+    "boosts": {
+      "1": {
+        "lpa": 15,
+        "sta": 15,
+        "str": 15,
+        "bal": 15,
+        "stt": 15,
+        "vis": 15
+      }
+    }
+  },
   "4010": {
     "id": 4010,
     "name": "Passing",
@@ -2094,6 +2589,180 @@ export const SKILL_TREE: Record<number, any> = {
         "rea": 10,
         "lsa": 10,
         "agi": 10
+      }
+    }
+  },
+  "4410": {
+    "id": 4410,
+    "name": "NAME_SKILL_4010",
+    "maxLevel": 3,
+    "requirement": null,
+    "unlocks": {
+      "2": [
+        "LM",
+        "CM"
+      ],
+      "3": [
+        "LM",
+        "CM"
+      ]
+    },
+    "boosts": {
+      "1": {
+        "lpa": 7,
+        "spa": 7,
+        "vis": 7
+      },
+      "2": {
+        "lpa": 14,
+        "spa": 14,
+        "vis": 14
+      },
+      "3": {
+        "lpa": 21,
+        "spa": 21,
+        "vis": 21
+      }
+    }
+  },
+  "4420": {
+    "id": 4420,
+    "name": "NAME_SKILL_4020",
+    "maxLevel": 3,
+    "requirement": null,
+    "unlocks": {
+      "2": [
+        "LM",
+        "CM"
+      ],
+      "3": [
+        "LM",
+        "CM"
+      ]
+    },
+    "boosts": {
+      "1": {
+        "bac": 7,
+        "dri": 7,
+        "agi": 7
+      },
+      "2": {
+        "bac": 14,
+        "dri": 14,
+        "agi": 14
+      },
+      "3": {
+        "bac": 21,
+        "dri": 21,
+        "agi": 21
+      }
+    }
+  },
+  "4430": {
+    "id": 4430,
+    "name": "NAME_SKILL_4030",
+    "maxLevel": 3,
+    "requirement": null,
+    "unlocks": {
+      "2": [
+        "LM",
+        "CM"
+      ],
+      "3": [
+        "LM",
+        "CM"
+      ]
+    },
+    "boosts": {
+      "1": {
+        "fin": 7,
+        "sho": 7,
+        "lsa": 7
+      },
+      "2": {
+        "fin": 14,
+        "sho": 14,
+        "lsa": 14
+      },
+      "3": {
+        "fin": 21,
+        "sho": 21,
+        "lsa": 21
+      }
+    }
+  },
+  "4440": {
+    "id": 4440,
+    "name": "NAME_SKILL_4040",
+    "maxLevel": 1,
+    "requirement": {
+      "skillId": 4410,
+      "level": 3
+    },
+    "unlocks": {
+      "1": [
+        "LM",
+        "CM"
+      ]
+    },
+    "boosts": {
+      "1": {
+        "bac": 15,
+        "dri": 15,
+        "lpa": 15,
+        "spa": 15,
+        "agi": 15,
+        "vis": 15
+      }
+    }
+  },
+  "4450": {
+    "id": 4450,
+    "name": "NAME_SKILL_4050",
+    "maxLevel": 1,
+    "requirement": {
+      "skillId": 4420,
+      "level": 3
+    },
+    "unlocks": {
+      "1": [
+        "LM",
+        "CM"
+      ]
+    },
+    "boosts": {
+      "1": {
+        "bac": 15,
+        "dri": 15,
+        "spa": 15,
+        "pos": 15,
+        "rea": 15,
+        "agi": 15
+      }
+    }
+  },
+  "4460": {
+    "id": 4460,
+    "name": "NAME_SKILL_4060",
+    "maxLevel": 1,
+    "requirement": {
+      "skillId": 4430,
+      "level": 3
+    },
+    "unlocks": {
+      "1": [
+        "LM",
+        "CM"
+      ]
+    },
+    "boosts": {
+      "1": {
+        "acc": 15,
+        "fin": 15,
+        "pos": 15,
+        "rea": 15,
+        "lsa": 15,
+        "agi": 15
       }
     }
   },
@@ -2623,6 +3292,138 @@ export const SKILL_TREE: Record<number, any> = {
       }
     }
   },
+  "5410": {
+    "id": 5410,
+    "name": "NAME_SKILL_5010",
+    "maxLevel": 3,
+    "requirement": null,
+    "unlocks": {},
+    "boosts": {
+      "1": {
+        "awr": 7,
+        "mrk": 7,
+        "stt": 7
+      },
+      "2": {
+        "awr": 14,
+        "mrk": 14,
+        "stt": 14
+      },
+      "3": {
+        "awr": 21,
+        "mrk": 21,
+        "stt": 21
+      }
+    }
+  },
+  "5420": {
+    "id": 5420,
+    "name": "NAME_SKILL_5020",
+    "maxLevel": 3,
+    "requirement": null,
+    "unlocks": {},
+    "boosts": {
+      "1": {
+        "lpa": 7,
+        "spa": 7,
+        "vis": 7
+      },
+      "2": {
+        "lpa": 14,
+        "spa": 14,
+        "vis": 14
+      },
+      "3": {
+        "lpa": 21,
+        "spa": 21,
+        "vis": 21
+      }
+    }
+  },
+  "5430": {
+    "id": 5430,
+    "name": "NAME_SKILL_5030",
+    "maxLevel": 3,
+    "requirement": null,
+    "unlocks": {},
+    "boosts": {
+      "1": {
+        "bac": 7,
+        "str": 7,
+        "bal": 7
+      },
+      "2": {
+        "bac": 14,
+        "str": 14,
+        "bal": 14
+      },
+      "3": {
+        "bac": 21,
+        "str": 21,
+        "bal": 21
+      }
+    }
+  },
+  "5440": {
+    "id": 5440,
+    "name": "NAME_SKILL_5040",
+    "maxLevel": 1,
+    "requirement": {
+      "skillId": 5410,
+      "level": 3
+    },
+    "unlocks": {},
+    "boosts": {
+      "1": {
+        "awr": 15,
+        "mrk": 15,
+        "str": 15,
+        "bal": 15,
+        "stt": 15,
+        "slt": 15
+      }
+    }
+  },
+  "5450": {
+    "id": 5450,
+    "name": "NAME_SKILL_5050",
+    "maxLevel": 1,
+    "requirement": {
+      "skillId": 5420,
+      "level": 3
+    },
+    "unlocks": {},
+    "boosts": {
+      "1": {
+        "bac": 15,
+        "dri": 15,
+        "lpa": 15,
+        "spa": 15,
+        "agi": 15,
+        "vis": 15
+      }
+    }
+  },
+  "5460": {
+    "id": 5460,
+    "name": "NAME_SKILL_5060",
+    "maxLevel": 1,
+    "requirement": {
+      "skillId": 5430,
+      "level": 3
+    },
+    "unlocks": {},
+    "boosts": {
+      "1": {
+        "awr": 15,
+        "bac": 15,
+        "dri": 15,
+        "spa": 15,
+        "str": 15,
+        "bal": 15
+      }
+    }
+  },
   "6010": {
     "id": 6010,
     "name": "Passing",
@@ -3136,6 +3937,180 @@ export const SKILL_TREE: Record<number, any> = {
       }
     }
   },
+  "6310": {
+    "id": 6310,
+    "name": "NAME_SKILL_6010",
+    "maxLevel": 3,
+    "requirement": null,
+    "unlocks": {
+      "2": [
+        "CM",
+        "CAM"
+      ],
+      "3": [
+        "CM",
+        "CAM"
+      ]
+    },
+    "boosts": {
+      "1": {
+        "lpa": 7,
+        "spa": 7,
+        "vis": 7
+      },
+      "2": {
+        "lpa": 14,
+        "spa": 14,
+        "vis": 14
+      },
+      "3": {
+        "lpa": 21,
+        "spa": 21,
+        "vis": 21
+      }
+    }
+  },
+  "6320": {
+    "id": 6320,
+    "name": "NAME_SKILL_6020",
+    "maxLevel": 3,
+    "requirement": null,
+    "unlocks": {
+      "2": [
+        "CM",
+        "CAM"
+      ],
+      "3": [
+        "CM",
+        "CAM"
+      ]
+    },
+    "boosts": {
+      "1": {
+        "bac": 7,
+        "dri": 7,
+        "agi": 7
+      },
+      "2": {
+        "bac": 14,
+        "dri": 14,
+        "agi": 14
+      },
+      "3": {
+        "bac": 21,
+        "dri": 21,
+        "agi": 21
+      }
+    }
+  },
+  "6330": {
+    "id": 6330,
+    "name": "NAME_SKILL_6030",
+    "maxLevel": 3,
+    "requirement": null,
+    "unlocks": {
+      "2": [
+        "CM",
+        "CAM"
+      ],
+      "3": [
+        "CM",
+        "CAM"
+      ]
+    },
+    "boosts": {
+      "1": {
+        "cro": 7,
+        "dri": 7,
+        "stt": 7
+      },
+      "2": {
+        "cro": 14,
+        "dri": 14,
+        "stt": 14
+      },
+      "3": {
+        "cro": 21,
+        "dri": 21,
+        "stt": 21
+      }
+    }
+  },
+  "6340": {
+    "id": 6340,
+    "name": "NAME_SKILL_6040",
+    "maxLevel": 1,
+    "requirement": {
+      "skillId": 6310,
+      "level": 3
+    },
+    "unlocks": {
+      "1": [
+        "CM",
+        "CAM"
+      ]
+    },
+    "boosts": {
+      "1": {
+        "bac": 15,
+        "dri": 15,
+        "lpa": 15,
+        "spa": 15,
+        "agi": 15,
+        "vis": 15
+      }
+    }
+  },
+  "6350": {
+    "id": 6350,
+    "name": "NAME_SKILL_6050",
+    "maxLevel": 1,
+    "requirement": {
+      "skillId": 6320,
+      "level": 3
+    },
+    "unlocks": {
+      "1": [
+        "CM",
+        "CAM"
+      ]
+    },
+    "boosts": {
+      "1": {
+        "bac": 15,
+        "spa": 15,
+        "str": 15,
+        "pos": 15,
+        "bal": 15,
+        "vis": 15
+      }
+    }
+  },
+  "6360": {
+    "id": 6360,
+    "name": "NAME_SKILL_6060",
+    "maxLevel": 1,
+    "requirement": {
+      "skillId": 6330,
+      "level": 3
+    },
+    "unlocks": {
+      "1": [
+        "CM",
+        "CAM"
+      ]
+    },
+    "boosts": {
+      "1": {
+        "awr": 15,
+        "bac": 15,
+        "cro": 15,
+        "dri": 15,
+        "stt": 15,
+        "vis": 15
+      }
+    }
+  },
   "7010": {
     "id": 7010,
     "name": "Defending",
@@ -3586,6 +4561,171 @@ export const SKILL_TREE: Record<number, any> = {
         "mrk": 10,
         "stt": 10,
         "slt": 10
+      }
+    }
+  },
+  "7410": {
+    "id": 7410,
+    "name": "NAME_SKILL_7010",
+    "maxLevel": 3,
+    "requirement": null,
+    "unlocks": {
+      "2": [
+        "RM"
+      ],
+      "3": [
+        "RM"
+      ]
+    },
+    "boosts": {
+      "1": {
+        "awr": 7,
+        "mrk": 7,
+        "stt": 7
+      },
+      "2": {
+        "awr": 14,
+        "mrk": 14,
+        "stt": 14
+      },
+      "3": {
+        "awr": 21,
+        "mrk": 21,
+        "stt": 21
+      }
+    }
+  },
+  "7420": {
+    "id": 7420,
+    "name": "NAME_SKILL_7020",
+    "maxLevel": 3,
+    "requirement": null,
+    "unlocks": {
+      "2": [
+        "RM"
+      ],
+      "3": [
+        "RM"
+      ]
+    },
+    "boosts": {
+      "1": {
+        "lpa": 7,
+        "spa": 7,
+        "vis": 7
+      },
+      "2": {
+        "lpa": 14,
+        "spa": 14,
+        "vis": 14
+      },
+      "3": {
+        "lpa": 21,
+        "spa": 21,
+        "vis": 21
+      }
+    }
+  },
+  "7430": {
+    "id": 7430,
+    "name": "NAME_SKILL_7030",
+    "maxLevel": 3,
+    "requirement": null,
+    "unlocks": {
+      "2": [
+        "RM"
+      ],
+      "3": [
+        "RM"
+      ]
+    },
+    "boosts": {
+      "1": {
+        "cro": 7,
+        "dri": 7,
+        "mrk": 7
+      },
+      "2": {
+        "cro": 14,
+        "dri": 14,
+        "mrk": 14
+      },
+      "3": {
+        "cro": 21,
+        "dri": 21,
+        "mrk": 21
+      }
+    }
+  },
+  "7440": {
+    "id": 7440,
+    "name": "NAME_SKILL_7040",
+    "maxLevel": 1,
+    "requirement": {
+      "skillId": 7410,
+      "level": 3
+    },
+    "unlocks": {
+      "1": [
+        "RM"
+      ]
+    },
+    "boosts": {
+      "1": {
+        "acc": 15,
+        "awr": 15,
+        "mrk": 15,
+        "str": 15,
+        "stt": 15,
+        "slt": 15
+      }
+    }
+  },
+  "7450": {
+    "id": 7450,
+    "name": "NAME_SKILL_7050",
+    "maxLevel": 1,
+    "requirement": {
+      "skillId": 7420,
+      "level": 3
+    },
+    "unlocks": {
+      "1": [
+        "RM"
+      ]
+    },
+    "boosts": {
+      "1": {
+        "acc": 15,
+        "cro": 15,
+        "lpa": 15,
+        "spa": 15,
+        "agi": 15,
+        "vis": 15
+      }
+    }
+  },
+  "7460": {
+    "id": 7460,
+    "name": "NAME_SKILL_7060",
+    "maxLevel": 1,
+    "requirement": {
+      "skillId": 7430,
+      "level": 3
+    },
+    "unlocks": {
+      "1": [
+        "RM"
+      ]
+    },
+    "boosts": {
+      "1": {
+        "acc": 15,
+        "awr": 15,
+        "cro": 15,
+        "dri": 15,
+        "mrk": 15,
+        "stt": 15
       }
     }
   },
@@ -4622,6 +5762,138 @@ export const SKILL_TREE: Record<number, any> = {
       }
     }
   },
+  "9510": {
+    "id": 9510,
+    "name": "NAME_SKILL_9010",
+    "maxLevel": 3,
+    "requirement": null,
+    "unlocks": {},
+    "boosts": {
+      "1": {
+        "lpa": 7,
+        "spa": 7,
+        "vis": 7
+      },
+      "2": {
+        "lpa": 14,
+        "spa": 14,
+        "vis": 14
+      },
+      "3": {
+        "lpa": 21,
+        "spa": 21,
+        "vis": 21
+      }
+    }
+  },
+  "9520": {
+    "id": 9520,
+    "name": "NAME_SKILL_9020",
+    "maxLevel": 3,
+    "requirement": null,
+    "unlocks": {},
+    "boosts": {
+      "1": {
+        "acc": 7,
+        "rea": 7,
+        "agi": 7
+      },
+      "2": {
+        "acc": 14,
+        "rea": 14,
+        "agi": 14
+      },
+      "3": {
+        "acc": 21,
+        "rea": 21,
+        "agi": 21
+      }
+    }
+  },
+  "9530": {
+    "id": 9530,
+    "name": "NAME_SKILL_9030",
+    "maxLevel": 3,
+    "requirement": null,
+    "unlocks": {},
+    "boosts": {
+      "1": {
+        "bac": 7,
+        "dri": 7,
+        "agi": 7
+      },
+      "2": {
+        "bac": 14,
+        "dri": 14,
+        "agi": 14
+      },
+      "3": {
+        "bac": 21,
+        "dri": 21,
+        "agi": 21
+      }
+    }
+  },
+  "9540": {
+    "id": 9540,
+    "name": "NAME_SKILL_9040",
+    "maxLevel": 1,
+    "requirement": {
+      "skillId": 9510,
+      "level": 3
+    },
+    "unlocks": {},
+    "boosts": {
+      "1": {
+        "bac": 15,
+        "dri": 15,
+        "lpa": 15,
+        "spa": 15,
+        "agi": 15,
+        "vis": 15
+      }
+    }
+  },
+  "9550": {
+    "id": 9550,
+    "name": "NAME_SKILL_9050",
+    "maxLevel": 1,
+    "requirement": {
+      "skillId": 9520,
+      "level": 3
+    },
+    "unlocks": {},
+    "boosts": {
+      "1": {
+        "acc": 15,
+        "hea": 15,
+        "fin": 15,
+        "pos": 15,
+        "rea": 15,
+        "agi": 15
+      }
+    }
+  },
+  "9560": {
+    "id": 9560,
+    "name": "NAME_SKILL_9060",
+    "maxLevel": 1,
+    "requirement": {
+      "skillId": 9530,
+      "level": 3
+    },
+    "unlocks": {},
+    "boosts": {
+      "1": {
+        "bac": 15,
+        "dri": 15,
+        "spa": 15,
+        "sho": 15,
+        "agi": 15,
+        "vol": 15
+      }
+    }
+  },
   "10010": {
     "id": 10010,
     "name": "Shooting",
@@ -5357,6 +6629,94 @@ export const SKILL_TREE: Record<number, any> = {
       }
     }
   },
+  "11310": {
+    "id": 11310,
+    "name": "NAME_SKILL_11010",
+    "maxLevel": 3,
+    "requirement": null,
+    "unlocks": {},
+    "boosts": {
+      "1": {
+        "ref": 7,
+        "gkp": 7,
+        "gkd": 7
+      },
+      "2": {
+        "ref": 14,
+        "gkp": 14,
+        "gkd": 14
+      },
+      "3": {
+        "ref": 21,
+        "gkp": 21,
+        "gkd": 21
+      }
+    }
+  },
+  "11320": {
+    "id": 11320,
+    "name": "NAME_SKILL_11020",
+    "maxLevel": 3,
+    "requirement": null,
+    "unlocks": {},
+    "boosts": {
+      "1": {
+        "han": 7,
+        "agi": 7,
+        "gkk": 7
+      },
+      "2": {
+        "han": 14,
+        "agi": 14,
+        "gkk": 14
+      },
+      "3": {
+        "han": 21,
+        "agi": 21,
+        "gkk": 21
+      }
+    }
+  },
+  "11330": {
+    "id": 11330,
+    "name": "NAME_SKILL_11030",
+    "maxLevel": 1,
+    "requirement": {
+      "skillId": 11310,
+      "level": 3
+    },
+    "unlocks": {},
+    "boosts": {
+      "1": {
+        "ref": 15,
+        "han": 15,
+        "gkp": 15,
+        "rea": 15,
+        "gkd": 15,
+        "jmp": 15
+      }
+    }
+  },
+  "11340": {
+    "id": 11340,
+    "name": "NAME_SKILL_11040",
+    "maxLevel": 1,
+    "requirement": {
+      "skillId": 11320,
+      "level": 3
+    },
+    "unlocks": {},
+    "boosts": {
+      "1": {
+        "lpa": 15,
+        "spa": 15,
+        "han": 15,
+        "rea": 15,
+        "agi": 15,
+        "gkk": 15
+      }
+    }
+  },
   "20010": {
     "id": 20010,
     "name": "NAME_SKILL_20010",
@@ -6001,6 +7361,35 @@ export const SKILL_TREE: Record<number, any> = {
       "2": {
         "awr": 20,
         "bac": 20,
+        "spd": 20,
+        "spa": 20,
+        "stt": 20,
+        "vis": 20
+      }
+    }
+  },
+  "31041": {
+    "id": 31041,
+    "name": "NAME_SKILL_31040",
+    "maxLevel": 2,
+    "requirement": null,
+    "unlocks": {},
+    "boosts": {
+      "1": {
+        "acc": 10,
+        "awr": 10,
+        "bac": 10,
+        "lpa": 10,
+        "spd": 10,
+        "spa": 10,
+        "stt": 10,
+        "vis": 10
+      },
+      "2": {
+        "acc": 20,
+        "awr": 20,
+        "bac": 20,
+        "lpa": 20,
         "spd": 20,
         "spa": 20,
         "stt": 20,
@@ -7723,6 +9112,31 @@ export const SKILL_TREE: Record<number, any> = {
         "spa": 20,
         "ref": 20,
         "rea": 20,
+        "agi": 20,
+        "gkk": 20
+      }
+    }
+  },
+  "38031": {
+    "id": 38031,
+    "name": "NAME_SKILL_38030",
+    "maxLevel": 2,
+    "requirement": null,
+    "unlocks": {},
+    "boosts": {
+      "1": {
+        "lpa": 10,
+        "spa": 10,
+        "ref": 10,
+        "gkd": 10,
+        "agi": 10,
+        "gkk": 10
+      },
+      "2": {
+        "lpa": 20,
+        "spa": 20,
+        "ref": 20,
+        "gkd": 20,
         "agi": 20,
         "gkk": 20
       }

@@ -16,6 +16,7 @@
     "revert-sync": "ts-node src/index.ts revert-sync",
     "update-dict": "ts-node src/scripts/updateDictionary.ts",
     "update-tree": "ts-node src/scripts/extractSkillTree.ts",
+    "repair-skills": "ts-node src/scripts/repairSkillRequirements.ts",
     "lint": "eslint . --ext .ts"
   },
   "keywords": [

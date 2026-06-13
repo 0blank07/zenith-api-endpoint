@@ -122,21 +122,38 @@ export class PostgresService {
         metaValues.push([player.assetId, rank, 0, rank]);
 
         if (player.skillStyleSkills && player.skillStyleSkills.length > 0) {
+          // Dynamic Base Skill Detection
+          let baseSkill = player.skillStyleSkills.find(sk => {
+            const data = SKILL_BOOSTS[sk.id];
+            return data && data.maxLevel > 1;
+          });
+          if (!baseSkill) {
+            baseSkill = player.skillStyleSkills.find(sk => {
+              const data = SKILL_BOOSTS[sk.id];
+              return data && !data.requirement;
+            }) || player.skillStyleSkills[0];
+          }
+
+          const baseSkillId = baseSkill.id;
+          const baseSkillTitle = getSkillTitle(baseSkill.id, baseSkill.name, '');
+
           for (const sk of player.skillStyleSkills) {
+            const isBaseSkill = sk.id === baseSkillId;
             const skillData = SKILL_BOOSTS[sk.id];
 
-            const isLocked = skillData?.requirement ? true : false;
-            const reqType = skillData?.requirement ? 'skill' : null;
-            // Lookup name from SKILL_BOOSTS to avoid "Skill ID X"
-            let reqName = null;
-            if (skillData?.requirement) {
-                const reqData = SKILL_BOOSTS[skillData.requirement.skillId];
-                const rawName = reqData ? reqData.name : `Skill ID ${skillData.requirement.skillId}`;
-                reqName = getSkillTitle(skillData.requirement.skillId, rawName, '');
-            }
+            let isLocked = false;
+            let reqType: string | null = null;
+            let reqName: string | null = null;
+            let reqLevel: number | null = null;
+            let reqId: number | null = null;
 
-            const reqLevel = skillData?.requirement ? skillData.requirement.level : null;
-            const reqId = skillData?.requirement ? skillData.requirement.skillId : null;
+            if (!isBaseSkill) {
+              isLocked = true;
+              reqType = 'skill_level';
+              reqName = baseSkillTitle;
+              reqId = baseSkillId;
+              reqLevel = skillData?.requirement ? skillData.requirement.level : 2;
+            }
 
             availableSkillsValues.push([
               player.assetId, rank, 0, sk.id, isLocked, reqType, reqName, reqLevel, reqId, reqLevel
