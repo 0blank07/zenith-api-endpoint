@@ -206,7 +206,7 @@ program
         const renderzIds = await searchService.getAllAssetIds();
         if (renderzIds.length === 0) return;
         const existingIds = await dbService.getAllAssetIds();
-        const missingIds = renderzIds.filter(id => !existingIds.has(id));
+        const missingIds = Array.from(new Set(renderzIds.filter(id => !existingIds.has(id))));
         logger.info(`Found ${missingIds.length} missing players.`);
 
         for (let i = 0; i < missingIds.length; i += 100) {
@@ -214,15 +214,23 @@ program
             const players = await searchService.getPlayersByAssetIds(batch);
             if (players.length > 0) {
                 const missingForBatch: MissingSkill[] = [];
-                players.forEach(p => p.skillStyleSkills?.forEach(sk => {
-                    if (!SKILL_BOOSTS[sk.id]) missingForBatch.push({ skillId: sk.id, playerId: p.assetId || p.playerId, name: sk.name });
-                }));
+                for (let i = 0; i < players.length; i++) {
+                    players[i].skillStyleSkills?.forEach(sk => {
+                        if (!SKILL_BOOSTS[sk.id]) missingForBatch.push({ skillId: sk.id, playerId: players[i].assetId || players[i].playerId, name: sk.name });
+                    });
+                }
                 if (missingForBatch.length > 0) {
                     const learned = await healMissingSkills(missingForBatch);
                     Object.assign(SKILL_BOOSTS, learned);
                 }
-                await dbService.savePlayers(players);
-                newlyInserted.push(...players.map(p => p.assetId));
+                const uniquePlayersMap = new Map();
+                for (const p of players) {
+                    uniquePlayersMap.set(p.assetId, p);
+                }
+                const uniquePlayers = Array.from(uniquePlayersMap.values());
+                
+                await dbService.savePlayers(uniquePlayers);
+                newlyInserted.push(...uniquePlayers.map(p => p.assetId));
             }
         }
       } else {
@@ -256,15 +264,22 @@ program
             
             if (playersToProcess.length > 0) {
                 const missingForBatch: MissingSkill[] = [];
-                playersToProcess.forEach(p => p.skillStyleSkills?.forEach(sk => {
-                    if (!SKILL_BOOSTS[sk.id]) missingForBatch.push({ skillId: sk.id, playerId: p.assetId || p.playerId, name: sk.name });
-                }));
+                for (let i = 0; i < playersToProcess.length; i++) {
+                    playersToProcess[i].skillStyleSkills?.forEach(sk => {
+                        if (!SKILL_BOOSTS[sk.id]) missingForBatch.push({ skillId: sk.id, playerId: playersToProcess[i].assetId || playersToProcess[i].playerId, name: sk.name });
+                    });
+                }
                 if (missingForBatch.length > 0) {
                     const learned = await healMissingSkills(missingForBatch);
                     Object.assign(SKILL_BOOSTS, learned);
                 }
-                await dbService.savePlayers(playersToProcess);
-                newlyInserted.push(...playersToProcess.map(p => p.assetId));
+                const uniquePlayersMap = new Map();
+                for (const p of playersToProcess) {
+                    uniquePlayersMap.set(p.assetId, p);
+                }
+                const uniquePlayers = Array.from(uniquePlayersMap.values());
+                await dbService.savePlayers(uniquePlayers);
+                newlyInserted.push(...uniquePlayers.map(p => p.assetId));
             }
           }
           offset += BATCH_SIZE;
@@ -273,7 +288,13 @@ program
         }
       }
       
-      if (newlyInserted.length > 0) fs.writeFileSync(backupPath, JSON.stringify(newlyInserted));
+      if (newlyInserted.length > 0) {
+        fs.writeFileSync(backupPath, JSON.stringify(newlyInserted));
+        const tempPath = './new_players_for_playstyles.json';
+        fs.writeFileSync(tempPath, JSON.stringify(newlyInserted));
+        logger.info(`Saved ${newlyInserted.length} new player IDs to ${tempPath}. Triggering auto-sync for playstyles...`);
+        await runCommand('npm run sync-playstyles');
+      }
       if (needsDictionaryUpdate) await runCommand('npm run update-dict');
       await healMissingSkills(missingSkillsToHeal);
       if (missingCelebrationsToHeal.length > 0) {

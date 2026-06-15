@@ -1,0 +1,132 @@
+{
+  "type": "data",
+  "nodes": [
+    {
+      "type": "skip"
+    },
+    {
+      "type": "data",
+      "data": [
+        {
+          "season": 1,
+          "seasons": 7,
+          "isMobileApp": 45,
+          "isRenderZRNApp": 45,
+          "isMobileDevice": 45,
+          "renderZRNAppPlatform": -1,
+          "sessionId": 46
+        },
+        {
+          "ref": 2,
+          "season": 3,
+          "name": 4,
+          "id": 5,
+          "internalId": 6
+        },
+        "FM23",
+        "fm23",
+        "FC 24/25",
+        "24",
+        23,
+        [
+          8,
+          9,
+          15,
+          21,
+          27,
+          33,
+          39
+        ],
+        {
+          "ref": 2,
+          "season": 3,
+          "name": 4,
+          "id": 5,
+          "internalId": 6
+        },
+        {
+          "ref": 10,
+          "season": 11,
+          "name": 12,
+          "id": 13,
+          "internalId": 14
+        },
+        "FM22",
+        "fm22",
+        "Season 6/7",
+        "22",
+        22,
+        {
+          "ref": 16,
+          "season": 17,
+          "name": 18,
+          "id": 19,
+          "internalId": 20
+        },
+        "FM21",
+        "fm21",
+        "Season 5",
+        "21",
+        21,
+        {
+          "ref": 22,
+          "season": 23,
+          "name": 24,
+          "id": 25,
+          "internalId": 26
+        },
+        "FM20",
+        "fm20",
+        "Season 4",
+        "20",
+        20,
+        {
+          "ref": 28,
+          "season": 29,
+          "name": 30,
+          "id": 31,
+          "internalId": 32
+        },
+        "FM19",
+        "fm19",
+        "Season 3",
+        "19",
+        19,
+        {
+          "ref": 34,
+          "season": 35,
+          "name": 36,
+          "id": 37,
+          "internalId": 38
+        },
+        "FM18",
+        "fm18",
+        "Season 2",
+        "18",
+        18,
+        {
+          "ref": 40,
+          "season": 41,
+          "name": 42,
+          "id": 43,
+          "internalId": 44
+        },
+        "FM17",
+        "fm17",
+        "Season 1",
+        "17",
+        17,
+        false,
+        null
+      ],
+      "uses": {
+        "params": [
+          "seasonId"
+        ]
+      }
+    },
+    {
+      "type": "skip"
+    }
+  ]
+}

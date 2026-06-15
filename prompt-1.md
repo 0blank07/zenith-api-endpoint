@@ -1,58 +1,193 @@
-blank@zenith-production:/var/www$ cd zenith
-blank@zenith-production:/var/www/zenith$ git pull && rm -rf .next && npm install && npm run build && pm2 restart zenith
-remote: Enumerating objects: 8, done.
-remote: Counting objects: 100% (8/8), done.
-remote: Compressing objects: 100% (3/3), done.
-remote: Total 8 (delta 5), reused 8 (delta 5), pack-reused 0 (from 0)
-Unpacking objects: 100% (8/8), 926 bytes | 42.00 KiB/s, done.
-From https://github.com/7blank-07/Zenith-app-Max
-   322d918..08b1c69  rush       -> origin/rush
-Updating 322d918..08b1c69
-Fast-forward
- next.config.js                         | 34 +---------------------------------
- src/lib/server/player-seo-contract.mjs |  3 ++-
- src/lib/server/prerender-rollout.mjs   | 13 +++++++------
- 3 files changed, 10 insertions(+), 40 deletions(-)
-
-up to date, audited 74 packages in 5s
-
-9 packages are looking for funding
-  run `npm fund` for details
-
-3 vulnerabilities (2 moderate, 1 high)
-
-To address issues that do not require attention, run:
-  npm audit fix
-
-To address all issues (including breaking changes), run:
-  npm audit fix --force
-
-Run `npm audit` for details.
-
-> zenith-app-max@1.0.0 prebuild
-> node scripts/prepare-legacy.mjs
-
-[prepare-legacy] Done: public assets, body HTML, and legacy bundle generated (CSS preserved).
-
-> zenith-app-max@1.0.0 build
-> next build
-
- ⨯ Failed to load next.config.js, see more info here https://nextjs.org/docs/messages/next-config-error
-
-> Build error occurred
-/var/www/zenith/next.config.js:1
-/** @type {import('next').NextConfig} */`nconst nextConfig = {`n  reactStrictMode: false,`n  staticPageGenerationTimeout: 600,`n  eslint: {`n    ignoreDuringBuilds: true,`n  },`n  typescript: {`n    ignoreBuildErrors: true,`n  },`n  async redirects() {`n    return [`n      {`n        source: '/compare',`n        destination: '/tools/player-compare',`n        permanent: true,`n      },`n      {`n        source: '/watchlist',`n        destination: '/tools/watchlist',`n        permanent: true,`n      }`n    ];`n  }`n};`n`nmodule.exports = nextConfig;
-                                                               ^
-
-SyntaxError: Unexpected identifier 'n'
-    at wrapSafe (node:internal/modules/cjs/loader:1464:18)
-    at Module._compile (node:internal/modules/cjs/loader:1495:20)
-    at Module._extensions..js (node:internal/modules/cjs/loader:1623:10)
-    at Module.load (node:internal/modules/cjs/loader:1266:32)
-    at Module._load (node:internal/modules/cjs/loader:1091:12)
-    at cjsLoader (node:internal/modules/esm/translators:298:15)
-    at ModuleWrap.<anonymous> (node:internal/modules/esm/translators:240:7)
-    at ModuleJob.run (node:internal/modules/esm/module_job:325:25)
-    at async ModuleLoader.import (node:internal/modules/esm/loader:606:24)
-    at async loadConfig (/var/www/zenith/node_modules/next/dist/server/config.js:711:36)
-blank@zenith-production:/var/www/zenith$ n\
+https://renderz.app/24/player/24037299
+https://renderz.app/24/player/24037300
+https://renderz.app/24/player/24038035
+https://renderz.app/24/player/24038036
+https://renderz.app/24/player/24044706
+https://renderz.app/24/player/24046012
+https://renderz.app/24/player/24037787
+https://renderz.app/24/player/24037788
+https://renderz.app/24/player/24038243
+https://renderz.app/24/player/24038244
+https://renderz.app/24/player/24044760
+https://renderz.app/24/player/24046004
+https://renderz.app/24/player/30912058
+https://renderz.app/24/player/30913018
+https://renderz.app/24/player/30913028
+https://renderz.app/24/player/30913113
+https://renderz.app/24/player/30913114
+https://renderz.app/24/player/30916802
+https://renderz.app/24/player/30916805
+https://renderz.app/24/player/24036909
+https://renderz.app/24/player/24036910
+https://renderz.app/24/player/24037415
+https://renderz.app/24/player/24037416
+https://renderz.app/24/player/24044702
+https://renderz.app/24/player/30913037
+https://renderz.app/24/player/30913038
+https://renderz.app/24/player/24037083
+https://renderz.app/24/player/24037084
+https://renderz.app/24/player/24038211
+https://renderz.app/24/player/24038212
+https://renderz.app/24/player/24044724
+https://renderz.app/24/player/24037975
+https://renderz.app/24/player/24037976
+https://renderz.app/24/player/24044732
+https://renderz.app/24/player/30912006
+https://renderz.app/24/player/24037363
+https://renderz.app/24/player/24037364
+https://renderz.app/24/player/24038157
+https://renderz.app/24/player/24038158
+https://renderz.app/24/player/24044734
+https://renderz.app/24/player/24044704
+https://renderz.app/24/player/24044714
+https://renderz.app/24/player/24046002
+https://renderz.app/24/player/24046006
+https://renderz.app/24/player/30913049
+https://renderz.app/24/player/30913050
+https://renderz.app/24/player/30913105
+https://renderz.app/24/player/30913106
+https://renderz.app/24/player/30916804
+https://renderz.app/24/player/30916806
+https://renderz.app/24/player/24037652
+https://renderz.app/24/player/24037859
+https://renderz.app/24/player/24037860
+https://renderz.app/24/player/24038461
+https://renderz.app/24/player/24038462
+https://renderz.app/24/player/24038731
+https://renderz.app/24/player/24038732
+https://renderz.app/24/player/24044736
+https://renderz.app/24/player/24044754
+https://renderz.app/24/player/24037471
+https://renderz.app/24/player/24037472
+https://renderz.app/24/player/24038887
+https://renderz.app/24/player/24038888
+https://renderz.app/24/player/24044758
+https://renderz.app/24/player/24044746
+https://renderz.app/24/player/30912054
+https://renderz.app/24/player/30913024
+https://renderz.app/24/player/30913026
+https://renderz.app/24/player/30916801
+https://renderz.app/24/player/24037063
+https://renderz.app/24/player/24037064
+https://renderz.app/24/player/24037113
+https://renderz.app/24/player/24037114
+https://renderz.app/24/player/24044722
+https://renderz.app/24/player/24037261
+https://renderz.app/24/player/24037262
+https://renderz.app/24/player/24038051
+https://renderz.app/24/player/24038052
+https://renderz.app/24/player/24038573
+https://renderz.app/24/player/24038574
+https://renderz.app/24/player/24039039
+https://renderz.app/24/player/24039040
+https://renderz.app/24/player/24044712
+https://renderz.app/24/player/24044728
+https://renderz.app/24/player/24046018
+https://renderz.app/24/player/30913102
+https://renderz.app/24/player/30913045
+https://renderz.app/24/player/30913046
+https://renderz.app/24/player/30916807
+https://renderz.app/24/player/24037311
+https://renderz.app/24/player/24037312
+https://renderz.app/24/player/24037513
+https://renderz.app/24/player/24037514
+https://renderz.app/24/player/24038831
+https://renderz.app/24/player/24038832
+https://renderz.app/24/player/24044730
+https://renderz.app/24/player/24044750
+https://renderz.app/24/player/24046016
+https://renderz.app/24/player/24036975
+https://renderz.app/24/player/24036976
+https://renderz.app/24/player/24038513
+https://renderz.app/24/player/24038514
+https://renderz.app/24/player/30912040
+https://renderz.app/24/player/30913010
+https://renderz.app/24/player/30913022
+https://renderz.app/24/player/24044748
+https://renderz.app/24/player/24037123
+https://renderz.app/24/player/24037124
+https://renderz.app/24/player/30912061
+https://renderz.app/24/player/30913004
+https://renderz.app/24/player/30913063
+https://renderz.app/24/player/30913064
+https://renderz.app/24/player/30916803
+https://renderz.app/24/player/24037207
+https://renderz.app/24/player/24037208
+https://renderz.app/24/player/24038005
+https://renderz.app/24/player/24038006
+https://renderz.app/24/player/24044742
+https://renderz.app/24/player/24046010
+https://renderz.app/24/player/24038767
+https://renderz.app/24/player/24038768
+https://renderz.app/24/player/24044744
+https://renderz.app/24/player/24046022
+https://renderz.app/24/player/30913086
+https://renderz.app/24/player/24044708
+https://renderz.app/24/player/24037637
+https://renderz.app/24/player/24037638
+https://renderz.app/24/player/24038307
+https://renderz.app/24/player/24038308
+https://renderz.app/24/player/24038716
+https://renderz.app/24/player/30913059
+https://renderz.app/24/player/30913060
+https://renderz.app/24/player/24038923
+https://renderz.app/24/player/24038924
+https://renderz.app/24/player/24044710
+https://renderz.app/24/player/30913066
+https://renderz.app/24/player/24038011
+https://renderz.app/24/player/24038012
+https://renderz.app/24/player/24044716
+https://renderz.app/24/player/24037771
+https://renderz.app/24/player/24037772
+https://renderz.app/24/player/24038721
+https://renderz.app/24/player/24038722
+https://renderz.app/24/player/24044756
+https://renderz.app/24/player/24037197
+https://renderz.app/24/player/24037198
+https://renderz.app/24/player/24037263
+https://renderz.app/24/player/24037264
+https://renderz.app/24/player/24038745
+https://renderz.app/24/player/24038746
+https://renderz.app/24/player/24044726
+https://renderz.app/24/player/30913107
+https://renderz.app/24/player/30913108
+https://renderz.app/24/player/24037565
+https://renderz.app/24/player/24037566
+https://renderz.app/24/player/24044738
+https://renderz.app/24/player/24046020
+https://renderz.app/24/player/24038299
+https://renderz.app/24/player/24038300
+https://renderz.app/24/player/24044720
+https://renderz.app/24/player/24036930
+https://renderz.app/24/player/30913078
+https://renderz.app/24/player/24037017
+https://renderz.app/24/player/24037018
+https://renderz.app/24/player/24037899
+https://renderz.app/24/player/24037900
+https://renderz.app/24/player/24046008
+https://renderz.app/24/player/24038871
+https://renderz.app/24/player/24038872
+https://renderz.app/24/player/24038983
+https://renderz.app/24/player/24038984
+https://renderz.app/24/player/24044718
+https://renderz.app/24/player/24044752
+https://renderz.app/24/player/24036819
+https://renderz.app/24/player/24036820
+https://renderz.app/24/player/24038359
+https://renderz.app/24/player/24038360
+https://renderz.app/24/player/24038417
+https://renderz.app/24/player/24038418
+https://renderz.app/24/player/24038817
+https://renderz.app/24/player/24038818
+https://renderz.app/24/player/30913062
+https://renderz.app/24/player/24036967
+https://renderz.app/24/player/24036968
+https://renderz.app/24/player/24037703
+https://renderz.app/24/player/24037704
+https://renderz.app/24/player/24036867
+https://renderz.app/24/player/24036868
+https://renderz.app/24/player/24038107
+https://renderz.app/24/player/24038108
+https://renderz.app/24/player/24044740
+https://renderz.app/24/player/24046014
+https://renderz.app/24/player/30913080

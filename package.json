@@ -17,6 +17,7 @@
     "update-dict": "ts-node src/scripts/updateDictionary.ts",
     "update-tree": "ts-node src/scripts/extractSkillTree.ts",
     "repair-skills": "ts-node src/scripts/repairSkillRequirements.ts",
+    "sync-playstyles": "ts-node src/scripts/syncPlaystyles.ts",
     "lint": "eslint . --ext .ts"
   },
   "keywords": [

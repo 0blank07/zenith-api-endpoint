@@ -114,9 +114,37 @@ export class PostgresService {
     const availableSkillsValues: any[][] = [];
     const boostValues: any[][] = [];
     const catalogValues: any[][] = [];
+    const playstylesCatalogValues: any[][] = [];
+    const playerPlaystylesValues: any[][] = [];
     const seenSkills = new Set<number>();
+    const seenPlaystyles = new Set<string>();
 
     for (const player of players) {
+      if (player.playstyles && player.playstyles.length > 0) {
+        const seenPlayerPlaystyles = new Set<string>();
+        for (const ps of player.playstyles) {
+          if (!seenPlayerPlaystyles.has(ps.name)) {
+             seenPlayerPlaystyles.add(ps.name);
+             playerPlaystylesValues.push([player.assetId, ps.name, ps.level]);
+          }
+          if (!seenPlaystyles.has(ps.name)) {
+            seenPlaystyles.add(ps.name);
+            const icon_1 = ps.level === 1 ? ps.icon : null;
+            const icon_2 = ps.level === 2 ? ps.icon : null;
+            playstylesCatalogValues.push([ps.name, ps.description, icon_1, icon_2]);
+          } else {
+            // If we already added it to playstylesCatalogValues in this batch, we MUST NOT add it again
+            // because ON CONFLICT DO UPDATE will crash if the same name appears twice in one query!
+            // Find the existing row and update the icon if needed instead of pushing a duplicate.
+            const existingRow = playstylesCatalogValues.find(r => r[0] === ps.name);
+            if (existingRow) {
+                if (ps.level === 1 && ps.icon) existingRow[2] = ps.icon;
+                if (ps.level === 2 && ps.icon) existingRow[3] = ps.icon;
+            }
+          }
+        }
+      }
+
       for (let rank = 0; rank <= 5; rank++) {
         statsValues.push(this.mapStats(player, rank));
         metaValues.push([player.assetId, rank, 0, rank]);
@@ -338,6 +366,28 @@ export class PostgresService {
             throw e;
         }
       }
+      if (playstylesCatalogValues.length > 0) {
+        const playstylesCatalogQuery = format(`
+          INSERT INTO playstyles_catalog (name, description, icon_level_1, icon_level_2)
+          VALUES %L
+          ON CONFLICT (name) DO UPDATE SET
+            description = COALESCE(EXCLUDED.description, playstyles_catalog.description),
+            icon_level_1 = COALESCE(EXCLUDED.icon_level_1, playstyles_catalog.icon_level_1),
+            icon_level_2 = COALESCE(EXCLUDED.icon_level_2, playstyles_catalog.icon_level_2)
+        `, playstylesCatalogValues);
+        await client.query(playstylesCatalogQuery);
+      }
+
+      if (playerPlaystylesValues.length > 0) {
+        const playerPlaystylesQuery = format(`
+          INSERT INTO player_playstyles (player_id, playstyle_name, level)
+          VALUES %L
+          ON CONFLICT (player_id, playstyle_name) DO UPDATE SET
+            level = EXCLUDED.level
+        `, playerPlaystylesValues);
+        await client.query(playerPlaystylesQuery);
+      }
+
       await client.query('COMMIT');
       logger.info(`Bulk Sync: Successfully inserted ${players.length} players in a single transaction.`);
     } catch (error: any) {

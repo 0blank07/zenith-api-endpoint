@@ -58,6 +58,13 @@ export interface Trait {
   image: string;
 }
 
+export interface Playstyle {
+  name: string;
+  icon: string;
+  level: number;
+  description: string;
+}
+
 export interface Skill {
   id: number;
   name: string;
@@ -93,6 +100,7 @@ export interface Player {
   skillStyleId: number;
   skillMovesLevel: number;
   skillStyleSkills: Skill[];
+  playstyles?: Playstyle[];
   traits: Trait[];
   skillMoves: {
     id: number;

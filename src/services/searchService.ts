@@ -439,7 +439,23 @@ export class SearchService {
     }
   }
 
+  private mapTraitName(title: string): string {
+    const TRAIT_DICTIONARY: Record<string, string> = {
+      'trait_name_12': 'Rapid',
+      'trait_name_15': 'Clinical Finisher',
+      'trait_name_16': 'Finesse Shot',
+      'trait_name_18': 'Play Maker',
+      'trait_name_21': 'GK Long Thrower'
+    };
+    return TRAIT_DICTIONARY[title] || title || 'Unknown';
+  }
+
   private normalizePlayer(raw: any, renderedTraits: Player['traits'] | null = null): Player {
+    if (Number(raw.assetId) === 3114943 || Number(raw.id) === 3114943 || Number(raw.assetId) === 24044746 || Number(raw.id) === 24044746) {
+      require('fs').writeFileSync('eusebio_raw.json', JSON.stringify(raw, null, 2));
+      console.log('Saved RAW JSON to eusebio_raw.json');
+    }
+    
     const skillStyleSkills = raw.skillStyleSkills || (raw.skillsData ? raw.skillsData.map((s: any) => ({
       id: s.skill.id,
       name: s.skill.name,
@@ -458,8 +474,57 @@ export class SearchService {
       league: raw.league || { name: raw.leagueName || 'Unknown', id: this.extractLinkedId(raw.leagueLink) },
       nation: raw.nation || { name: raw.nationName || 'Unknown', id: this.extractLinkedId(raw.nationLink) },
       skillStyleSkills,
-      traits: this.mergeTraits(this.mergeTraits(raw.traits, supplementalTraits), renderedTraits),
-      skillMovesLevel: typeof raw.skillMovesLevel === 'number' ? raw.skillMovesLevel : parseInt(raw.skillMoves?.stars?.toString().match(/\d+/)?.[0] || '3')
+      playstyles: (() => {
+        const extractedPlaystyles = (renderedTraits || []).filter(rt => rt.image && (rt.image.includes('playstyle_') || rt.image.includes('traitlogo_'))).map(rt => ({
+          name: this.mapTraitName((rt as any).title || (rt as any).name || ''),
+          icon: rt.image,
+          level: (rt.image && rt.image.includes('GOLD')) ? 2 : 1,
+          description: rt.description || ''
+        }));
+        const rawPlaystyles = raw.playStyles || raw.playstyles || raw.playstylesData || [];
+        const mappedRawTraits = (raw.traits || []).filter((t: any) => t.image).map((t: any) => ({
+          name: this.mapTraitName(t.title || ''),
+          icon: t.image,
+          level: (t.image && t.image.includes('GOLD')) ? 2 : 1,
+          description: t.description || ''
+        }));
+        
+        if (Number(raw.assetId) === 3114943 || Number(raw.assetId) === 24044746) {
+           console.log('RAW PLAYSTYLES:', JSON.stringify(rawPlaystyles));
+           console.log('EXTRACTED PLAYSTYLES:', JSON.stringify(extractedPlaystyles));
+           console.log('MAPPED RAW TRAITS:', JSON.stringify(mappedRawTraits));
+        }
+        const combined = [...rawPlaystyles, ...extractedPlaystyles, ...mappedRawTraits];
+        
+        const uniquePlaystylesMap = new Map();
+        combined.forEach(ps => {
+            const name = ps.name || ps.title || 'Unknown';
+            if (!uniquePlaystylesMap.has(name)) {
+                uniquePlaystylesMap.set(name, ps);
+            }
+        });
+        const uniquePlaystyles = Array.from(uniquePlaystylesMap.values());
+        
+        return uniquePlaystyles.map((ps: any, i: number, arr: any[]) => {
+          let parsedLevel = 1;
+          if (arr.length === 2) {
+             parsedLevel = i === 0 ? 2 : 1;
+          } else {
+             if (typeof ps.level === 'number') parsedLevel = ps.level;
+             else if (typeof ps.level === 'string' && ps.level.includes('2')) parsedLevel = 2;
+             else if (ps.icon?.includes('GOLD') || ps.image?.includes('GOLD')) parsedLevel = 2;
+          }
+          return {
+             name: ps.name || 'Unknown',
+             icon: ps.icon || ps.image || '',
+             level: parsedLevel,
+             description: ps.description || ''
+          };
+        });
+      })(),
+      traits: this.mergeTraits(this.mergeTraits(raw.traits, supplementalTraits), (renderedTraits || []).filter(rt => !rt.image || (!rt.image.includes('playstyle_') && !rt.image.includes('traitlogo_')))),
+      skillMovesLevel: typeof raw.skillMovesLevel === 'number' ? raw.skillMovesLevel : parseInt(raw.skillMoves?.stars?.toString().match(/\d+/)?.[0] || '3'),
+      _raw: Object.keys(raw)
     };
   }
 
@@ -594,7 +659,7 @@ export class SearchService {
           const image = card.querySelector('img.relative.z-0.h-auto.max-w-full') ?? card.querySelector('img');
           if (!image) return false;
           const src = image.getAttribute('src') || '';
-          if (!/(traitlogo_23_|skillmovelogo_23_|celebrationlogo_23_)/.test(src)) return false;
+          if (!/(traitlogo_23_|skillmovelogo_23_|celebrationlogo_23_|playstyle_)/.test(src)) return false;
           const text = card.textContent?.replace(/\s+/g, ' ').trim() || '';
           return text.length > 0;
         });
@@ -609,7 +674,7 @@ export class SearchService {
             const image = card.querySelector('img.relative.z-0.h-auto.max-w-full') ?? card.querySelector('img');
             if (!image) return false;
             const src = image.getAttribute('src') || '';
-            return /(traitlogo_23_|skillmovelogo_23_|celebrationlogo_23_)/.test(src);
+            return /(traitlogo_23_|skillmovelogo_23_|celebrationlogo_23_|playstyle_)/.test(src);
           });
         if (cards.length === 0) return null;
 
@@ -872,7 +937,7 @@ export class SearchService {
     }
   }
 
-  private async enrichPlayerTraitsFromRenderedCard(player: Player, assetId: number): Promise<Player> {
+  public async enrichPlayerTraitsFromRenderedCard(player: Player, assetId: number): Promise<Player> {
     const renderedTraits = await this.getRenderedTraitsForAsset(assetId);
     if (!renderedTraits || renderedTraits.length === 0) return player;
 

@@ -1,0 +1,261 @@
+{
+  "players": [
+    {
+      "assetId": 24037299,
+      "playerId": 192119,
+      "firstName": "Thibaut",
+      "lastName": "Courtois",
+      "commonName": "",
+      "cardName": "Courtois",
+      "position": "GK",
+      "rating": 118,
+      "weakFoot": 3,
+      "foot": 2,
+      "source": "PROGRAM_TWG26",
+      "workRateAtt": 0,
+      "workRateDef": 0,
+      "weight": 96,
+      "height": 200,
+      "birthday": "1992-05-11T00:00:00Z",
+      "bio": "biotxt_24036857",
+      "bindingXml": "PLAYERCARDUI_TWG26_LIVE_BELGIUM_L2",
+      "animation": {
+        "cardData": [
+          "background",
+          "player",
+          "rating",
+          "position",
+          "nation",
+          "club",
+          "name",
+          "level",
+          "rank"
+        ],
+        "colors": {
+          "rating": "#FFFFFF",
+          "position": "#FFFFFF",
+          "name": "#FFFFFF",
+          "level": "#FFFFFF"
+        },
+        "layout": {
+          "player": {
+            "sizeX": 256,
+            "sizeY": 256,
+            "posX": 0,
+            "posY": 0
+          },
+          "rating": {
+            "sizeX": 80,
+            "sizeY": 80,
+            "posX": 36,
+            "posY": 4,
+            "fontSize": 36
+          },
+          "position": {
+            "sizeX": 40,
+            "sizeY": 20,
+            "posX": 56,
+            "posY": 64,
+            "fontSize": 24
+          },
+          "nation": {
+            "sizeX": 24,
+            "sizeY": 24,
+            "posX": 82.7,
+            "posY": 188
+          },
+          "club": {
+            "sizeX": 24,
+            "sizeY": 24,
+            "posX": 146.6,
+            "posY": 188
+          },
+          "name": {
+            "sizeX": 0,
+            "sizeY": 0,
+            "posX": 128,
+            "posY": 178,
+            "fontSize": 22
+          },
+          "level": {
+            "sizeX": 64,
+            "sizeY": 32,
+            "posX": 128,
+            "posY": 233,
+            "fontSize": 23
+          },
+          "rank": {
+            "sizeX": 32,
+            "sizeY": 32,
+            "posX": 128,
+            "posY": 232
+          }
+        },
+        "animations": [
+          {
+            "animations": [
+              {
+                "id": "BYf3H8",
+                "image": "https://images-v2.renderz.app/sprite_23_twg26_TWG26_LIVE_BELGIUM_LOOP_L2?verify=1781464900-YxoDkKwMhM4t8XOz0wh8kPQpptqN0qbvjKIOutZ7YQ4%3D",
+                "imageName": "twg26_TWG26_LIVE_BELGIUM_LOOP_L2",
+                "imageHeight": 0,
+                "imageWidth": 0,
+                "maxFrames": 45
+              }
+            ],
+            "when": "(#cardSize == ~Constants.CARD_PICTURE_BIG_SIZE || (#cardSize == ~Constants.CARD_PICTURE_MEDIUM_SIZE && #UILevel != 0))"
+          }
+        ]
+      },
+      "tags": "TWG26,TWG26_LIVE,PHASE_3,TWG26_ALL,TWG26_BADGE,PHASE_3_A,TWG26_GROUP_G,TWG26_BEL,S_25,BASEOVR_118,CLUB,RANK_GK,GC270611,Auction,24037299",
+      "skillStyleId": 470,
+      "skillStyleSkills": [
+        {
+          "id": 38021,
+          "name": "NAME_SKILL_38020",
+          "image": "https://images-v2.renderz.app/skill_S10_SHOT_STOPPER_3?verify=1781102207-AT9xjzvntfTfCZa5%2BYadGV1OjizVhAVTg4XCbnbllCQ%3D"
+        },
+        {
+          "id": 39020,
+          "name": "NAME_SKILL_39020",
+          "image": "https://images-v2.renderz.app/skill_S10_GK_PASSING_3?verify=1781102207-WSdtPyctLA7v2fj1dqf8rh9FD0i8YSYR5%2BFBsmohGos%3D"
+        },
+        {
+          "id": 39021,
+          "name": "NAME_SKILL_39021",
+          "image": "https://images-v2.renderz.app/skill_S10_DRIBBLING_3?verify=1781102207-2hVqaZ%2FwGIQN5qAZZgeUQQ%2FlnGhFHSh1uA6lg7FIzM0%3D"
+        },
+        {
+          "id": 39022,
+          "name": "NAME_SKILL_39022",
+          "image": "https://images-v2.renderz.app/skill_S10_GK_RUSH_3?verify=1781102207-kRbodfgcQqKkkPTIjoplnlgwJ4n7t22oYYNLy4d%2FGcU%3D"
+        },
+        {
+          "id": 39023,
+          "name": "NAME_SKILL_39023",
+          "image": "https://images-v2.renderz.app/skill_S10_HIGHBALLS_3?verify=1781102207-bkoTjBlSq2o2mEq23%2FeuZ%2BvsgiNl6tgg6hml6Hd6EN4%3D"
+        }
+      ],
+      "images": {
+        "playerCardImage": "https://images-v2.renderz.app/player_25_192119_TWG26_LIVE_221b992cec9e502c?verify=1781102212-SyepW8pM3EqCsEYVXKXSyh70S%2FvUXXySXWNXzOqkFVA%3D",
+        "playerCardBackground": "https://images-v2.renderz.app/bg_23_backgrounds_twg26_TWG26_LIVE_BELGIUM_STATIC_L2?verify=1781102212-JMp0ca3xEdkVuK%2B8Yv09hw3YxpdNuATg2p3evFwyNpE%3D",
+        "flagImage": "https://images-v2.renderz.app/flags_23_128x128_7?verify=1781102212-Htu4GSVAgVtRPFAEh9MtF%2FgHytDryOjd06%2F8Nfu9j%2Fc%3D",
+        "clubImage": "https://images-v2.renderz.app/club_23_1325?verify=1781102212-OxrDqoesMSu44L3TIuOL84QiW4Wyq2mhAMz3dqiNVyg%3D",
+        "leagueImage": "https://images-v2.renderz.app/league_23_78?verify=1781102212-Q%2BYXYHedP9wz6nRPrnDBbtj4V3c3%2BcnUuY7kGNyiW30%3D"
+      },
+      "skillMoves": {
+        "id": 80,
+        "title": "skillmove_name_80",
+        "description": "skillmove_desc_80",
+        "image": "https://images-v2.renderz.app/skillmovelogo_23_0?verify=1781102212-p78NVsGooGf8dz4GWsSunsp16APo2VCzIBCjss%2FHcvk%3D"
+      },
+      "skillMovesLevel": 1,
+      "celebration": {
+        "id": 25,
+        "title": "celebration_name_25",
+        "description": "celebration_desc_0",
+        "image": "https://images-v2.renderz.app/celebrationlogo_23_0?verify=1781102212-znqm4IepI%2FDLCP2Vx5T%2FZpzyeukfXTmMx7OS83ZFQh0%3D"
+      },
+      "traits": [
+        {
+          "id": 21,
+          "title": "trait_name_21",
+          "description": "trait_desc_21",
+          "image": "https://images-v2.renderz.app/traitlogo_23_21?verify=1781102215-4Zn6Xu7FAKyiNxIXKrWIJ0WCZO83XMX1ZRfyHiEE%2Bgk%3D"
+        }
+      ],
+      "club": {
+        "id": 1325,
+        "name": "TeamName_1325"
+      },
+      "league": {
+        "id": 78,
+        "name": "LeagueName_78"
+      },
+      "nation": {
+        "id": 7,
+        "name": "NationName_7"
+      },
+      "avgStats": {
+        "avg1": 93,
+        "avg2": 17,
+        "avg3": 94,
+        "avg4": 112,
+        "avg5": 85,
+        "avg6": 115
+      },
+      "avgGkStats": {
+        "avg1": 148,
+        "avg2": 152,
+        "avg3": 149,
+        "avg4": 150,
+        "avg5": 137,
+        "avg6": 135
+      },
+      "stats": {
+        "acc": 91,
+        "agg": 92,
+        "agi": 129,
+        "awr": 89,
+        "bac": 101,
+        "bal": 114,
+        "cro": 89,
+        "cur": 60,
+        "dri": 89,
+        "fin": 8,
+        "frk": 79,
+        "gkd": 148,
+        "gkk": 137,
+        "gkp": 152,
+        "han": 149,
+        "hea": 98,
+        "jmp": 132,
+        "lpa": 101,
+        "lsa": 8,
+        "mrk": 79,
+        "pen": 65,
+        "pos": 8,
+        "rea": 145,
+        "ref": 150,
+        "sho": 42,
+        "slt": 89,
+        "spa": 101,
+        "spd": 95,
+        "str": 122,
+        "stt": 79,
+        "vis": 95,
+        "vol": 8,
+        "sta": 38,
+        "total": 2982
+      },
+      "liveOvr": {
+        "ovrUpgrade": 0
+      },
+      "priceData": {
+        "0": {
+          "basePrice": 8330000000
+        },
+        "1": {
+          "basePrice": 8340000000
+        },
+        "2": {
+          "basePrice": 8340000000
+        },
+        "3": {
+          "basePrice": 8350000000
+        },
+        "4": {
+          "basePrice": 8380000000
+        },
+        "5": {
+          "basePrice": 8430000000
+        }
+      },
+      "auctionable": true,
+      "rank": 0,
+      "likes": 0,
+      "added": "2026-06-10T14:36:52.3513592Z",
+      "revealOn": "2026-06-10T15:30:00Z"
+    }
+  ]
+}

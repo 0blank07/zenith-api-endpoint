@@ -1,0 +1,290 @@
+{
+  "assetId": 24044746,
+  "playerId": 212198,
+  "firstName": "Bruno Miguel",
+  "lastName": "Borges Fernandes",
+  "commonName": "Bruno Fernandes",
+  "cardName": "Bruno Fernandes",
+  "position": "CM",
+  "rating": 120,
+  "weakFoot": 4,
+  "foot": 1,
+  "source": "PROGRAM_TOTS26",
+  "workRateAtt": 2,
+  "workRateDef": 2,
+  "weight": 69,
+  "height": 179,
+  "birthday": "1994-09-08T00:00:00Z",
+  "bio": "biotxt_24044709",
+  "bindingXml": "PLAYERCARDUI_UTOTS26_B",
+  "animation": {
+    "cardData": [
+      "background",
+      "player",
+      "rating",
+      "position",
+      "nation",
+      "league",
+      "club",
+      "name",
+      "level",
+      "rank"
+    ],
+    "colors": {
+      "rating": "#FDF2BB",
+      "position": "#FDF2BB",
+      "name": "#FDF2BB",
+      "level": "#FFFFFF"
+    },
+    "layout": {
+      "player": {
+        "sizeX": 256,
+        "sizeY": 256,
+        "posX": 0,
+        "posY": 0
+      },
+      "rating": {
+        "sizeX": 80,
+        "sizeY": 80,
+        "posX": 36,
+        "posY": 4,
+        "fontSize": 36
+      },
+      "position": {
+        "sizeX": 40,
+        "sizeY": 20,
+        "posX": 56,
+        "posY": 64,
+        "fontSize": 24
+      },
+      "nation": {
+        "sizeX": 24,
+        "sizeY": 24,
+        "posX": 64.083,
+        "posY": 188.088
+      },
+      "club": {
+        "sizeX": 24,
+        "sizeY": 24,
+        "posX": 168,
+        "posY": 188
+      },
+      "league": {
+        "sizeX": 24,
+        "sizeY": 24,
+        "posX": 116,
+        "posY": 188
+      },
+      "name": {
+        "sizeX": 0,
+        "sizeY": 0,
+        "posX": 128.166,
+        "posY": 178.101,
+        "fontSize": 22
+      },
+      "level": {
+        "sizeX": 64,
+        "sizeY": 32,
+        "posX": 128,
+        "posY": 233,
+        "fontSize": 23
+      },
+      "rank": {
+        "sizeX": 32,
+        "sizeY": 32,
+        "posX": 128,
+        "posY": 232
+      }
+    },
+    "animations": [
+      {
+        "animations": [
+          {
+            "id": "9pu4ZC",
+            "image": "https://images-v2.renderz.app/sprite_23_tots26_B_UTOTS26?verify=1781385378-c4NPfPNxZ4RHnY9S7JcygBEjhvXHDY5Ct9x69DKYT%2BA%3D",
+            "imageName": "tots26_B_UTOTS26",
+            "imageHeight": 0,
+            "imageWidth": 0,
+            "maxFrames": 45
+          }
+        ],
+        "when": "(#cardSize == ~Constants.CARD_PICTURE_BIG_SIZE || (#cardSize == ~Constants.CARD_PICTURE_MEDIUM_SIZE && #UILevel != 0))"
+      }
+    ]
+  },
+  "tags": "GC260528,PHASE_3,PHASE_3_FORBIDDEN,TOTS26,TOTS26_BADGE,TOTS26_UTOTS,TOTS26_LIVE,TOTS26_EPL,S_25,CLUB,BASEOVR_120,RANK_MID,no_auction,24044746,ZEROWEIGHTEDPLAYER",
+  "skillStyleId": 412,
+  "skillStyleSkills": [
+    {
+      "id": 32041,
+      "name": "NAME_SKILL_32040",
+      "image": "https://images-v2.renderz.app/skill_S10_DEEP_LYING_PLAYMAKER_3?verify=1780501843-jiq%2FdCLZF%2Fy68gS4D8vo8our1D1tD9O0lOqkkuu%2FRyc%3D"
+    },
+    {
+      "id": 39010,
+      "name": "NAME_SKILL_39010",
+      "image": "https://images-v2.renderz.app/skill_S10_SHOOTING_3?verify=1780501843-BCg1DBSt59fkS2jm%2BWLhO2wTfYmdM8Ipi72B3GpZvvQ%3D"
+    },
+    {
+      "id": 39011,
+      "name": "NAME_SKILL_39011",
+      "image": "https://images-v2.renderz.app/skill_S10_PASSING_3?verify=1780501843-01m3Y1PiF9d6MIZhLv1gGOaxLhQ17dsppjA482kMCZg%3D"
+    },
+    {
+      "id": 39012,
+      "name": "NAME_SKILL_39012",
+      "image": "https://images-v2.renderz.app/skill_S10_DRIBBLING_3?verify=1780501843-4kqtyT8ii07g6SfXp5jqBPOK4hOScNSG3mdnvjErQRo%3D"
+    },
+    {
+      "id": 39013,
+      "name": "NAME_SKILL_39013",
+      "image": "https://images-v2.renderz.app/skill_S10_DEFENDING_3?verify=1780501843-7yNVKR4P141KQ%2BKsMKddYfC15MWnHS54RLFUOoLJypk%3D"
+    },
+    {
+      "id": 39014,
+      "name": "NAME_SKILL_39014",
+      "image": "https://images-v2.renderz.app/skill_S10_PHYSICAL_3?verify=1780501843-YtVXtngr06bSev5l9i8o9P2fZI%2FbkQz8tL34k4PB75g%3D"
+    }
+  ],
+  "images": {
+    "playerCardImage": "https://images-v2.renderz.app/player_25_212198_UTOTS26_LIVE_e19f300fc1b83def?verify=1780502687-bRA64zmdXUEx%2BnMCBm9dCDUbog2DYKz2PrSjjkKwcCw%3D",
+    "playerCardBackground": "https://images-v2.renderz.app/bg_23_backgrounds_26_B_UTOTS26_STATIC?verify=1780502687-Bimmyh%2B3oGNxy1htl5dl6agln%2FEQSNVIceouie0O1aA%3D",
+    "flagImage": "https://images-v2.renderz.app/flags_23_128x128_38?verify=1780502687-a%2BJdaGPqvcwrM7HfWIOltgR5BQNAlDco2DhcxQygKqo%3D",
+    "clubImage": "https://images-v2.renderz.app/club_23_11?verify=1780502687-ikKzIMxa19pS41MnFZuI%2B%2FLlXqvHDq99O%2F4BbL1VQwE%3D",
+    "leagueImage": "https://images-v2.renderz.app/league_23_13?verify=1780502687-eR0rxQKhxu7IDvT8bLY%2FnIpyCWVIYb7QYj2OUM6sq54%3D"
+  },
+  "skillMoves": {
+    "id": 78,
+    "title": "skillmove_name_78",
+    "description": "skillmove_desc_78",
+    "image": "https://images-v2.renderz.app/skillmovelogo_23_0?verify=1780502687-Z7ZBlEOkjtX%2BU81Hx0muSa407M%2Fhstire82UZ%2B1lHnQ%3D"
+  },
+  "skillMovesLevel": 4,
+  "celebration": {
+    "id": 2,
+    "title": "celebration_name_2",
+    "description": "celebration_desc_0",
+    "image": "https://images-v2.renderz.app/celebrationlogo_23_0?verify=1780502687-gdCH4cV5pfbfoIDbiQJw0BML1OS0AHXnalG2JqlHr50%3D"
+  },
+  "traits": [
+    {
+      "id": 12,
+      "title": "trait_name_12",
+      "description": "trait_desc_12",
+      "image": "https://images-v2.renderz.app/traitlogo_23_12?verify=1780502698-KTWVBOrcWn6bkaBu0zqZXsk%2BB%2FykTdV%2BcQyGDqP5wwQ%3D"
+    },
+    {
+      "id": 15,
+      "title": "trait_name_15",
+      "description": "trait_desc_15",
+      "image": "https://images-v2.renderz.app/traitlogo_23_15?verify=1780502698-gYvUW%2BFuy7%2BN1KaMu%2Bt1NNY33NKZdTMT4ldTgwiFaBE%3D"
+    },
+    {
+      "id": 16,
+      "title": "trait_name_16",
+      "description": "trait_desc_16",
+      "image": "https://images-v2.renderz.app/traitlogo_23_16?verify=1780502698-KY2VjdDhSaVxsiv9DmwR91IXqYeiz%2BJ6wf9xuld%2FldM%3D"
+    },
+    {
+      "id": 18,
+      "title": "trait_name_18",
+      "description": "trait_desc_18",
+      "image": "https://images-v2.renderz.app/traitlogo_23_18?verify=1780502698-LEpwotjyCvvp9Ovdbw%2F7ao0xBqz4lQgiH3pVCwihn2o%3D"
+    }
+  ],
+  "club": {
+    "id": 11,
+    "name": "TeamName_11"
+  },
+  "league": {
+    "id": 13,
+    "name": "LeagueName_13"
+  },
+  "nation": {
+    "id": 38,
+    "name": "NationName_38"
+  },
+  "potentialPositions": [
+    "CAM"
+  ],
+  "avgStats": {
+    "avg1": 148,
+    "avg2": 143,
+    "avg3": 156,
+    "avg4": 146,
+    "avg5": 130,
+    "avg6": 126
+  },
+  "avgGkStats": {
+    "avg1": 12,
+    "avg2": 8,
+    "avg3": 14,
+    "avg4": 14,
+    "avg5": 15,
+    "avg6": 142
+  },
+  "stats": {
+    "acc": 148,
+    "agg": 136,
+    "agi": 137,
+    "awr": 140,
+    "bac": 154,
+    "bal": 147,
+    "cro": 154,
+    "cur": 140,
+    "dri": 148,
+    "fin": 142,
+    "frk": 134,
+    "gkd": 12,
+    "gkk": 15,
+    "gkp": 8,
+    "han": 14,
+    "hea": 112,
+    "jmp": 125,
+    "lpa": 158,
+    "lsa": 151,
+    "mrk": 131,
+    "pen": 140,
+    "pos": 135,
+    "rea": 146,
+    "ref": 14,
+    "sho": 148,
+    "slt": 128,
+    "spa": 160,
+    "spd": 149,
+    "str": 120,
+    "stt": 138,
+    "vis": 160,
+    "vol": 132,
+    "sta": 95,
+    "total": 3971
+  },
+  "liveOvr": {
+    "ovrUpgrade": 0
+  },
+  "priceData": {
+    "0": {
+      "basePrice": 2140000000
+    },
+    "1": {
+      "basePrice": 2780000000
+    },
+    "2": {
+      "basePrice": 3610000000
+    },
+    "3": {
+      "basePrice": 4690000000
+    },
+    "4": {
+      "basePrice": 9370000000
+    },
+    "5": {
+      "basePrice": 9500000000
+    }
+  },
+  "auctionable": false,
+  "rank": 0,
+  "likes": 4,
+  "added": "2026-05-28T08:39:12.870923Z",
+  "revealOn": "2026-05-28T09:00:00Z"
+}
