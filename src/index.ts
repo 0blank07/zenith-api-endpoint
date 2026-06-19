@@ -197,6 +197,7 @@ program
   .action(async (options) => {
     try {
       await dbService.initSchema();
+      
       const backupPath = './latest_sync_rollback.json';
       const BATCH_SIZE = parseInt(options.size) || 40;
       let newlyInserted: number[] = [];
@@ -209,8 +210,8 @@ program
         const missingIds = Array.from(new Set(renderzIds.filter(id => !existingIds.has(id))));
         logger.info(`Found ${missingIds.length} missing players.`);
 
-        for (let i = 0; i < missingIds.length; i += 100) {
-            const batch = missingIds.slice(i, i + 100);
+        for (let i = 0; i < missingIds.length; i += 450) {
+            const batch = missingIds.slice(i, i + 450);
             const players = await searchService.getPlayersByAssetIds(batch);
             if (players.length > 0) {
                 const missingForBatch: MissingSkill[] = [];
@@ -302,8 +303,11 @@ program
         await healMissingCelebrations(missingCelebrationsToHeal);
       }
       await dbService.disconnect();
-    } catch (error: any) {
-      logger.error(`Sync failed: ${error.message}`);
+    } catch (error) {
+      logger.error('Sync process failed:', error);
+      process.exit(1);
+    } finally {
+      process.exit(0);
     }
   });
 

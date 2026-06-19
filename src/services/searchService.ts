@@ -15,47 +15,59 @@ export class SearchService {
     this.sessionManager = new SessionManager();
   }
 
+
+
   async getPlayersByAssetIds(assetIds: number[]): Promise<Player[]> {
       const results: Player[] = [];
-      const batchSize = 50; // Increased sub-batch size for faster processing
+      const batchSize = 100; // Can safely use 100 with valid tokens
       
       for (let i = 0; i < assetIds.length; i += batchSize) {
           const batch = assetIds.slice(i, i + batchSize);
           logger.info(`  -> Capturing sub-batch ${Math.floor(i/batchSize) + 1}/${Math.ceil(assetIds.length/batchSize)} (${batch.length} players)...`);
+          
+          const payload = { 
+              query: { bool: { must: [{ terms: { assetId: batch } }], should: [], must_not: [] } }, 
+              from: 0, 
+              size: batch.length, 
+              _source: [] 
+          };
+
+          let success = false;
+
           try {
-              // Try direct API first for the batch
-              const payload = { 
-                  query: { bool: { must: [{ terms: { assetId: batch } }], should: [], must_not: [] } }, 
-                  from: 0, 
-                  size: batch.length, 
-                  _source: [] 
-              };
               const response = await this.client.post<SearchResponse>(CONSTANTS.SEARCH_ENDPOINT, payload);
               if (response.players && response.players.length > 0) {
                   results.push(...response.players.map(p => this.normalizePlayer(p)));
-                  if (response.players.length === batch.length) continue;
-                  
-                  // If we got some but not all, find which are missing and continue to SSR
-                  const foundIds = new Set(response.players.map((p: any) => p.assetId));
-                  const remainingBatch = batch.filter(id => !foundIds.has(id));
-                  if (remainingBatch.length > 0) {
-                      const ssrPlayers = await this.getPlayersByAssetIdsViaSSR(remainingBatch);
-                      results.push(...ssrPlayers);
-                  }
-                  continue;
+                  success = true;
               }
-          } catch (e) {
-              logger.warn(`Batch API fetch failed for ${batch.length} players, falling back to SSR...`);
+          } catch (e: any) {
+              if (e.message.includes('SESSION_BLOCKED') || e.message.includes('403')) {
+                  logger.warn(`API blocked for batch. Forcing token refresh...`);
+                  try {
+                      await this.sessionManager.getSession(true);
+                      logger.info(`Tokens refreshed. Retrying batch...`);
+                      const retryResponse = await this.client.post<SearchResponse>(CONSTANTS.SEARCH_ENDPOINT, payload);
+                      if (retryResponse.players && retryResponse.players.length > 0) {
+                          results.push(...retryResponse.players.map(p => this.normalizePlayer(p)));
+                          success = true;
+                      }
+                  } catch (retryErr: any) {
+                      logger.error(`Retry after refresh failed: ${retryErr.message}`);
+                  }
+              } else {
+                  logger.warn(`Batch API fetch failed: ${e.message}`);
+              }
           }
 
-          // Fallback to SSR for this small batch
-          const ssrPlayers = await this.getPlayersByAssetIdsViaSSR(batch);
-          results.push(...ssrPlayers);
-          
+          if (!success) {
+              logger.warn(`Falling back to SSR for ${batch.length} players...`);
+              const ssrPlayers = await this.getPlayersByAssetIdsViaSSR(batch);
+              results.push(...ssrPlayers);
+          }
+
           // Small delay between sub-batches to be safe
           if (i + batchSize < assetIds.length) await new Promise(r => setTimeout(r, 500));
       }
-      
       return results;
   }
 
@@ -254,33 +266,39 @@ export class SearchService {
   }
 
   async getAllAssetIds(): Promise<number[]> {
-    const fetchIdsBatch = async (size: number, searchAfter?: any[], tokens?: any) => {
+    const fetchIdsBatch = async (size: number, searchAfter?: any[]) => {
         const body: any = {
             query: { bool: { must: [], should: [], must_not: [] } },
             sort: [{ assetId: { order: "desc" } }],
             size: size
         };
         if (searchAfter) body.search_after = searchAfter;
-        
-        if (tokens) {
-            // Using browser fetch context
-            return await this.fetchInBrowser(CONSTANTS.SEARCH_ENDPOINT, body, tokens);
-        } else {
-            // Using direct axios client
-            return await this.client.post(CONSTANTS.SEARCH_ENDPOINT, body);
-        }
+        return await this.client.post(CONSTANTS.SEARCH_ENDPOINT, body);
     };
 
-    logger.info('Fetching all Asset IDs from RenderZ (High Speed Scan)...');
-    try {
-      const allIds: number[] = [];
-      const BATCH_SIZE = 1000;
-      let lastAssetId: number | null = null;
-      let hasMore = true;
+    let allIds: number[] = [];
+    const BATCH_SIZE = 1000; 
+    let hasMore = true;
+    let lastAssetId: number | null = null;
+    let retryUsed = false;
 
+    try {
       while (hasMore) {
         const searchAfter = lastAssetId ? [lastAssetId] : undefined;
-        const response: any = await fetchIdsBatch(BATCH_SIZE, searchAfter);
+        let response: any;
+        
+        try {
+            response = await fetchIdsBatch(BATCH_SIZE, searchAfter);
+        } catch (err: any) {
+            if (!retryUsed && (err.message.includes('SESSION_BLOCKED') || err.message.includes('403'))) {
+                logger.warn('Direct scan blocked. Forcing token refresh...');
+                await this.sessionManager.getSession(true);
+                retryUsed = true;
+                response = await fetchIdsBatch(BATCH_SIZE, searchAfter); // Retry once
+            } else {
+                throw err;
+            }
+        }
         
         if (response.players && response.players.length > 0) {
            const batch = response.players.map((p: any) => p.assetId);
@@ -293,16 +311,18 @@ export class SearchService {
         } else {
            hasMore = false;
         }
+        // Be nice to the API
+        await new Promise(r => setTimeout(r, 200));
       }
       logger.info(`Scan complete. Found ${allIds.length} players on RenderZ.`);
       return allIds;
     } catch (error: any) {
-      if (error.message.includes('SESSION_BLOCKED') || error.message.includes('403')) {
-        logger.warn('Direct scan blocked. Entering Browser-based ID Discovery...');
-        return await this.getAllAssetIdsViaSSR();
-      }
-      logger.error(`Failed to scan all asset IDs: ${error.message}`);
-      return [];
+        if (error.message.includes('SESSION_BLOCKED') || error.message.includes('403')) {
+            logger.warn('Direct scan blocked even after refresh. Entering Browser-based ID Discovery...');
+            return await this.getAllAssetIdsViaSSR();
+        }
+        logger.error(`Failed to scan all asset IDs: ${error.message}`);
+        return [];
     }
   }
 
