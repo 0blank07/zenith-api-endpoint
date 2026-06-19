@@ -133,7 +133,10 @@ const playersToFix = [
     24044716, // Lamine Yamal 119
     24005126, // Lienhart 109
     24045501, // CR7 116
-    24045504  // Messi 116
+    24045504, // Messi 116
+    30916805, // Shevchenko 120
+    30917205, // Casillas 120
+    30917206  // Donovan 120
 ];
 
 forceHealPlayers(playersToFix).catch(console.error);

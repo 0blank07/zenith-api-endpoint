@@ -131,12 +131,25 @@ async function run() {
                           icon_level_1 = COALESCE(EXCLUDED.icon_level_1, playstyles_catalog.icon_level_1),
                           icon_level_2 = COALESCE(EXCLUDED.icon_level_2, playstyles_catalog.icon_level_2)
                   `, [ps.name, ps.description || null, numLevel === 1 ? ps.icon : null, numLevel === 2 ? ps.icon : null]);
+              }
 
+              // Before inserting, delete all existing playstyles for this player to prevent stale data
+              await pool.query(`DELETE FROM player_playstyles WHERE player_id = $1`, [assetId]);
+
+              for (let i = 0; i < playstyles.length; i++) {
+                  const ps = playstyles[i];
+                  if (!ps) continue;
+                  let parsedLevel = 1;
+                  if (playstyles.length === 2) {
+                      parsedLevel = i === 0 ? 2 : 1;
+                  } else {
+                      if (ps.icon?.includes('GOLD')) parsedLevel = 2;
+                  }
+                  const numLevel = typeof ps.level === 'number' ? ps.level : parsedLevel;
+                  
                   await pool.query(`
                       INSERT INTO player_playstyles (player_id, playstyle_name, level)
                       VALUES ($1, $2, $3)
-                      ON CONFLICT (player_id, playstyle_name) DO UPDATE SET
-                          level = EXCLUDED.level
                   `, [assetId, ps.name, numLevel]);
               }
               logger.info(`   ✅ Playstyles Updated for ${assetId}`);
