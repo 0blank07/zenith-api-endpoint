@@ -13,7 +13,8 @@ import {
   getWorkRateLabel, 
   getMainStats, 
   getSkillDetails,
-  SKILL_BOOSTS
+  SKILL_BOOSTS,
+  missingCelebrationsToHeal
 } from './utils/dataCleaner';
 import { healMissingSkills, MissingSkill } from './scripts/healSkills';
 
@@ -24,7 +25,6 @@ const dbService = new PostgresService();
 // Global collector for self-healing
 const missingSkillsToHeal: MissingSkill[] = [];
 let needsDictionaryUpdate = false;
-const missingCelebrationsToHeal: { assetId: number; celebrationId: number }[] = [];
 
 program
   .name('renderz-cli')

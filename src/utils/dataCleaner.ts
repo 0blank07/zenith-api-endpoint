@@ -61,9 +61,53 @@ const SKILL_MOVE_NAMES: Record<number, string> = {
 };
 
 const CELEBRATIONS: Record<number, string> = {
+  78: 'Samba',
+  68: 'Waddle',
+  67: 'Floor Spin',
+  66: 'Timber',
+  64: 'Push It Down',
+  63: 'Stand Tall',
+  62: 'KO',
+  61: 'Matador',
+  51: 'Heart',
+  48: 'Thigh Point',
+  47: 'Celebration 47',
+  45: 'Violinist',
+  44: 'Uppercut Jump Punch',
+  42: 'Torero',
+  40: 'Standing Archer',
+  39: 'Stand and Point to Sky',
+  38: 'Spanish Archer',
+  37: 'Side Slide',
+  34: 'Samba Dance',
+  32: 'Roll and Fist Pump',
+  31: 'Robot',
+  30: 'Punch and Dodge',
+  29: 'Point to Crowd',
+  28: 'One Knee Fist Pump',
+  27: 'Kneel and Point to Heavens',
+  24: 'Knee Slide Spin',
+  22: 'Knee Slide Arms Out',
+  21: 'Knee Slide',
+  20: 'Jump Punch to Fist Pump',
+  19: 'I Can\'t Hear You',
+  15: 'Hand Spring',
+  14: 'Front Flip',
+  13: 'Push-Up',
+  11: 'Double Backflip',
+  10: 'Chest Slide',
+  9: 'Karate Kick',
+  8: 'Cart Wheel and Flip',
+  7: 'Cart Wheel',
+  6: 'Brick Fall',
+  5: 'Bow',
+  3: 'Golf Swing',
+  2: 'Big Fist Pump',
   81: 'Embrace', 80: 'Think', 79: 'Slide and Cheer', 74: 'Yoga', 69: 'Square',
   85: 'Siuuu!', 50: 'Right Here Right Now', 25: 'Belli-goal'
 };
+
+export const missingCelebrationsToHeal: { assetId: number; celebrationId: number }[] = [];
 
 /**
  * CLEANING LOGIC - 100% Guaranteed Fail-Safe
@@ -122,6 +166,9 @@ export function cleanName(name: string, id?: number, type?: 'club' | 'league' | 
       if (type === 'club' && CLUBS[lastId]) return CLUBS[lastId];
       if (type === 'league' && LEAGUES[lastId]) return LEAGUES[lastId];
       if (type === 'nation' && NATIONS[lastId]) return NATIONS[lastId];
+      if (type === 'celebration' && assetId) {
+          missingCelebrationsToHeal.push({ assetId, celebrationId: lastId });
+      }
       return `Unknown (${type || 'ID'} ${cleaned})`;
   }
 
@@ -179,7 +226,7 @@ const TRAITS: Record<number, string> = {
   16: 'Long Shot Taker', 18: 'Play Maker', 22: 'Power Header',
   25: 'Outside Foot Shot', 29: 'Acrobatic Clearance', 3: 'Injury Prone',
   8: 'Early Crosser', 11: 'Long Shot Taker', 17: 'Technical Dribbler',
-  20: 'Flair', 21: 'Solid Player', 24: 'Team Player'
+  20: 'Flair', 21: 'Solid Player', 24: 'Team Player', 9: 'Selfish'
 };
 
 export function getTraitTitle(id: number, rawTitle: string): string {
