@@ -102,7 +102,8 @@ export class PostgresService {
         player.animation?.colors?.rating || '', player.animation?.colors?.position || '',
         player.animation?.colors?.name || '', player.animation?.colors?.level || '',
         player.workRateAtt || 0, player.workRateDef || 0, cleanName(player.club?.name, player.club?.id, 'club', { leagueId: player.league?.id, assetId: player.assetId }),
-        playerName, cleanName(player.source, undefined, 'program'), cleanName(player.league?.name, player.league?.id, 'league', { assetId: player.assetId })
+        playerName, cleanName(player.source, undefined, 'program'), cleanName(player.league?.name, player.league?.id, 'league', { assetId: player.assetId }),
+        player.traits?.map(t => t.image || '').filter(Boolean).join(',') || ''
     ];
   }
 
@@ -123,6 +124,9 @@ export class PostgresService {
       if (player.playstyles && player.playstyles.length > 0) {
         const seenPlayerPlaystyles = new Set<string>();
         for (const ps of player.playstyles) {
+          if (!ps.name || /^(trait_name_|celebration_name_|skillmove_name_)/i.test(ps.name)) {
+             continue;
+          }
           if (!seenPlayerPlaystyles.has(ps.name)) {
              seenPlayerPlaystyles.add(ps.name);
              playerPlaystylesValues.push([player.assetId, ps.name, ps.level]);
@@ -292,10 +296,10 @@ export class PostgresService {
             awareness, heading, physical, strength, aggression, jumping, diving, gk_diving, gk_positioning, handling,
             gk_handling, reflexes, gk_reflexes, kicking, gk_kicking, is_untradable, date_added, league_image, traits_name,
             player_image, card_background, nation_flag, club_flag, color_rating, color_position, color_name, color_level,
-            work_rate_attack, work_rate_defense, team, name, event, league
+            work_rate_attack, work_rate_defense, team, name, event, league, traits
           ) VALUES %L
           ON CONFLICT (player_id, rank, training_level) DO UPDATE SET
-            name = EXCLUDED.name, ovr = EXCLUDED.ovr, event = EXCLUDED.event, traits_name = EXCLUDED.traits_name, league = EXCLUDED.league, team = EXCLUDED.team, nation_region = EXCLUDED.nation_region
+            name = EXCLUDED.name, ovr = EXCLUDED.ovr, event = EXCLUDED.event, traits_name = EXCLUDED.traits_name, traits = EXCLUDED.traits, league = EXCLUDED.league, team = EXCLUDED.team, nation_region = EXCLUDED.nation_region
         `, statsValues);
         try {
             await client.query(statsQuery);
