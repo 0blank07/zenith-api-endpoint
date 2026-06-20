@@ -192,6 +192,7 @@ program
   .command('sync')
   .description('Sync cards to PostgreSQL')
   .option('-s, --size <number>', 'Number of cards per batch', '40')
+  .option('-d, --date [YYYY-MM-DD]', 'Sync cards added on a specific date (defaults to today)')
   .option('-a, --audit', 'Deep audit (Refresh existing data)')
   .option('-m, --missing', 'Full discovery (Scan all IDs)')
   .action(async (options) => {
@@ -202,7 +203,42 @@ program
       const BATCH_SIZE = parseInt(options.size) || 40;
       let newlyInserted: number[] = [];
 
-      if (options.missing) {
+      if (options.date) {
+        // If option used without arg, it might be true. If so, default to today.
+        let targetDate = typeof options.date === 'string' ? options.date : new Date().toISOString().split('T')[0];
+        logger.info(`--- RUNNING DATE-BASED SYNC FOR: ${targetDate} ---`);
+        
+        const players = await searchService.search({ addedDate: targetDate, size: 1000 });
+        if (players.length === 0) {
+            logger.info(`No players found for date ${targetDate}.`);
+        } else {
+            const existingIds = await dbService.getAllAssetIds();
+            const missing = players.filter(p => !existingIds.has(p.assetId));
+            
+            logger.info(`Found ${players.length} players added on ${targetDate}. ${missing.length} are new to DB.`);
+            
+            if (missing.length > 0) {
+                const missingForBatch: MissingSkill[] = [];
+                for (let i = 0; i < missing.length; i++) {
+                    missing[i].skillStyleSkills?.forEach(sk => {
+                        if (!SKILL_BOOSTS[sk.id]) missingForBatch.push({ skillId: sk.id, playerId: missing[i].assetId || missing[i].playerId, name: sk.name });
+                    });
+                }
+                if (missingForBatch.length > 0) {
+                    const learned = await healMissingSkills(missingForBatch);
+                    Object.assign(SKILL_BOOSTS, learned);
+                }
+                const uniquePlayersMap = new Map();
+                for (const p of missing) {
+                    uniquePlayersMap.set(p.assetId, p);
+                }
+                const uniquePlayers = Array.from(uniquePlayersMap.values());
+                
+                await dbService.savePlayers(uniquePlayers);
+                newlyInserted.push(...uniquePlayers.map(p => p.assetId));
+            }
+        }
+      } else if (options.missing) {
         logger.info('--- RUNNING FULL DISCOVERY SYNC ---');
         const renderzIds = await searchService.getAllAssetIds();
         if (renderzIds.length === 0) return;

@@ -1005,6 +1005,16 @@ export class SearchService {
     if (options.league) must.push({ match: { 'league.id': options.league } });
     if (options.club) must.push({ match: { 'club.id': options.club } });
     if (options.nation) must.push({ match: { 'nation.id': options.nation } });
+    if (options.addedDate) {
+      must.push({
+        range: {
+          added: {
+            gte: `${options.addedDate}T00:00:00.000Z`,
+            lte: `${options.addedDate}T23:59:59.999Z`
+          }
+        }
+      });
+    }
     const sort: any[] = [];
     if (options.sortBy) sort.push({ [options.sortBy]: { order: options.sortOrder || 'desc' } });
     else sort.push({ rating: { order: 'desc' } });

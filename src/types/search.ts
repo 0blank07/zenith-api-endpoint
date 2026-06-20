@@ -11,4 +11,5 @@ export interface SearchOptions {
   sortOrder?: 'desc' | 'asc';
   from?: number;
   size?: number;
+  addedDate?: string;
 }
