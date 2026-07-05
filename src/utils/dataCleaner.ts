@@ -1,6 +1,8 @@
 import { Player, Trait, Skill } from '../types/player';
 import { RENDERZ_DICTIONARY } from './renderzDictionary';
 import { SKILL_TREE } from './skillTree';
+import { getTraitNameFromCache, getCelebrationNameFromCache, logMissingMetadata } from './dictionaryCache';
+
 
 /**
  * MAPPINGS & DICTIONARIES
@@ -60,59 +62,12 @@ const SKILL_MOVE_NAMES: Record<number, string> = {
   46: 'Hocus Pocus', 78: 'Lane Change', 80: 'Open Up Fake Shot'
 };
 
-const CELEBRATIONS: Record<number, string> = {
-  78: 'Samba',
-  68: 'Waddle',
-  67: 'Floor Spin',
-  66: 'Timber',
-  64: 'Push It Down',
-  63: 'Stand Tall',
-  62: 'KO',
-  61: 'Matador',
-  51: 'Heart',
-  48: 'Thigh Point',
-  47: 'Celebration 47',
-  45: 'Violinist',
-  44: 'Uppercut Jump Punch',
-  42: 'Torero',
-  40: 'Standing Archer',
-  39: 'Stand and Point to Sky',
-  38: 'Spanish Archer',
-  37: 'Side Slide',
-  34: 'Samba Dance',
-  32: 'Roll and Fist Pump',
-  31: 'Robot',
-  30: 'Punch and Dodge',
-  29: 'Point to Crowd',
-  28: 'One Knee Fist Pump',
-  27: 'Kneel and Point to Heavens',
-  24: 'Knee Slide Spin',
-  22: 'Knee Slide Arms Out',
-  21: 'Knee Slide',
-  20: 'Jump Punch to Fist Pump',
-  19: 'I Can\'t Hear You',
-  15: 'Hand Spring',
-  14: 'Front Flip',
-  13: 'Push-Up',
-  11: 'Double Backflip',
-  10: 'Chest Slide',
-  9: 'Karate Kick',
-  8: 'Cart Wheel and Flip',
-  7: 'Cart Wheel',
-  6: 'Brick Fall',
-  5: 'Bow',
-  3: 'Golf Swing',
-  2: 'Big Fist Pump',
-  81: 'Embrace', 80: 'Think', 79: 'Slide and Cheer', 74: 'Yoga', 69: 'Square',
-  85: 'Siuuu!', 50: 'Right Here Right Now', 25: 'Belli-goal'
-};
-
 export const missingCelebrationsToHeal: { assetId: number; celebrationId: number }[] = [];
 
 /**
  * CLEANING LOGIC - 100% Guaranteed Fail-Safe
  */
-export function cleanName(name: string, id?: number, type?: 'club' | 'league' | 'nation' | 'program' | 'skill_move' | 'celebration', context?: { leagueId?: number, assetId?: number }): string {
+export function cleanName(name: string, id?: number, type?: 'club' | 'league' | 'nation' | 'program' | 'skill_move' | 'celebration' | 'trait', context?: { leagueId?: number, assetId?: number }): string {
   if (!name) return 'Unknown';
   let s = String(name).trim();
 
@@ -141,7 +96,7 @@ export function cleanName(name: string, id?: number, type?: 'club' | 'league' | 
     if (type === 'league' && LEAGUES[cid]) return LEAGUES[cid];
     if (type === 'club' && CLUBS[cid]) return CLUBS[cid];
     if (type === 'skill_move' && SKILL_MOVE_NAMES[cid]) return SKILL_MOVE_NAMES[cid];
-    if (type === 'celebration' && CELEBRATIONS[cid]) return CELEBRATIONS[cid];
+    if (type === 'celebration' && getCelebrationNameFromCache(cid)) return getCelebrationNameFromCache(cid)!;
   }
 
   // 4. Dictionary Lookup
@@ -169,6 +124,7 @@ export function cleanName(name: string, id?: number, type?: 'club' | 'league' | 
       if (type === 'celebration' && assetId) {
           missingCelebrationsToHeal.push({ assetId, celebrationId: lastId });
       }
+      logMissingMetadata(assetId, type || 'trait', lastId);
       return `Unknown (${type || 'ID'} ${cleaned})`;
   }
 
@@ -220,24 +176,17 @@ export function getSkillRequirements(skillLevel: number) {
   };
 }
 
-const TRAITS: Record<number, string> = {
-  1: 'Long Throw', 2: 'Powerful Driven Free Kick', 7: 'Dives Into Tackles',
-  12: 'Early Crosser', 13: 'Finesse Shot', 14: 'Flair', 15: 'Long Passer',
-  16: 'Long Shot Taker', 18: 'Play Maker', 22: 'Power Header',
-  25: 'Outside Foot Shot', 29: 'Acrobatic Clearance', 3: 'Injury Prone',
-  8: 'Early Crosser', 11: 'Long Shot Taker', 17: 'Technical Dribbler',
-  20: 'Flair', 21: 'Solid Player', 24: 'Team Player', 9: 'Selfish'
-};
-
 export function getTraitTitle(id: number, rawTitle: string): string {
   if (id >= 200000) {
     const celebrationId = id - 200000;
-    if (CELEBRATIONS[celebrationId]) return CELEBRATIONS[celebrationId];
+    const celebName = getCelebrationNameFromCache(celebrationId);
+    if (celebName) return celebName;
     return cleanName(rawTitle || `celebration_name_${celebrationId}`, celebrationId, 'celebration');
   }
-  if (/^traits?[_ ]title[_ ]\d+$/i.test(rawTitle)) return TRAITS[id] || cleanName(rawTitle);
-  if (rawTitle && !/^trait_name_\d+$/i.test(rawTitle)) return cleanName(rawTitle);
-  return TRAITS[id] || cleanName(rawTitle);
+  const traitName = getTraitNameFromCache(id);
+  if (/^traits?[_ ]title[_ ]\d+$/i.test(rawTitle)) return traitName || cleanName(rawTitle, id, 'trait');
+  if (rawTitle && !/^trait_name_\d+$/i.test(rawTitle)) return cleanName(rawTitle, id, 'trait');
+  return traitName || cleanName(rawTitle, id, 'trait');
 }
 
 export const SKILL_BOOSTS = SKILL_TREE;
