@@ -28,8 +28,7 @@ export class SearchService {
           const payload = { 
               query: { bool: { must: [{ terms: { assetId: batch } }], should: [], must_not: [] } }, 
               from: 0, 
-              size: batch.length, 
-              _source: [] 
+              size: batch.length
           };
 
           let success = false;
@@ -62,7 +61,10 @@ export class SearchService {
           if (!success) {
               logger.warn(`Falling back to SSR for ${batch.length} players...`);
               const ssrPlayers = await this.getPlayersByAssetIdsViaSSR(batch);
-              results.push(...ssrPlayers);
+              if (ssrPlayers.length > 0) {
+                  logger.debug(`[DEBUG] SSR Fallback First Player Images: ${JSON.stringify(ssrPlayers[0].images || 'NO IMAGES')}`);
+              }
+              results.push(...ssrPlayers.map(p => this.normalizePlayer(p)));
           }
 
           // Small delay between sub-batches to be safe
@@ -122,8 +124,7 @@ export class SearchService {
           body: JSON.stringify({
             query: { bool: { must: [{ terms: { assetId: assetIds } }], should: [], must_not: [] } },
             from: 0,
-            size: assetIds.length,
-            _source: []
+            size: assetIds.length
           })
         });
 
@@ -407,7 +408,6 @@ export class SearchService {
           const body: any = {
               query: { bool: { must: [], should: [], must_not: [] } },
               sort: [{ rating: { order: "desc" } }, { assetId: { order: "desc" } }],
-              _source: [],
               from: 0,
               size: BATCH_SIZE
           };
@@ -482,6 +482,10 @@ export class SearchService {
       image: s.skill.image
     })) : []);
     const supplementalTraits = this.extractSupplementalTraits(raw);
+
+    if (!raw.images || !raw.images.playerCardImage) {
+        logger.debug(`[DEBUG] normalizePlayer: Player ${raw.assetId || raw.id} has NO playerCardImage. Raw images object: ${JSON.stringify(raw.images || null)}`);
+    }
 
     return {
       ...raw,
@@ -914,8 +918,7 @@ export class SearchService {
           body: JSON.stringify({
             query: { bool: { must: [{ match: { assetId: params.assetId } }], should: [], must_not: [] } },
             from: 0,
-            size: 1,
-            _source: []
+            size: 1
           })
         });
 
@@ -968,7 +971,7 @@ export class SearchService {
   }
 
   async getByAssetId(assetId: number): Promise<Player | null> {
-    const payload = { query: { bool: { must: [{ match: { assetId } }], should: [], must_not: [] } }, from: 0, size: 1, _source: [] };
+    const payload = { query: { bool: { must: [{ match: { assetId } }], should: [], must_not: [] } }, from: 0, size: 1 };
     try {
       const response = await this.client.post<SearchResponse>(CONSTANTS.SEARCH_ENDPOINT, payload);
       const player = response.players[0];
@@ -1019,6 +1022,6 @@ export class SearchService {
     if (options.sortBy) sort.push({ [options.sortBy]: { order: options.sortOrder || 'desc' } });
     else sort.push({ rating: { order: 'desc' } });
     sort.push({ assetId: { order: 'desc' } });
-    return { query: { bool: { must, should: [], must_not: [] } }, sort, _source: [], from: options.from || 0, size: options.size || CONSTANTS.DEFAULT_PAGE_SIZE };
+    return { query: { bool: { must, should: [], must_not: [] } }, sort, from: options.from || 0, size: options.size || CONSTANTS.DEFAULT_PAGE_SIZE };
   }
 }

@@ -150,6 +150,12 @@ export class PostgresService {
         }
       }
 
+      if (!player.images || !player.images.playerCardImage) {
+        logger.debug(`[DEBUG] savePlayers: Player ${player.assetId} has NO images before DB mapping! Images object: ${JSON.stringify(player.images || null)}`);
+      } else {
+        logger.debug(`[DEBUG] savePlayers: Player ${player.assetId} HAS images! playerCardImage: ${player.images.playerCardImage}`);
+      }
+
       for (let rank = 0; rank <= 5; rank++) {
         statsValues.push(this.mapStats(player, rank));
         metaValues.push([player.assetId, rank, 0, rank]);
@@ -300,7 +306,7 @@ export class PostgresService {
             work_rate_attack, work_rate_defense, team, name, event, league, traits, raw_trait_ids
           ) VALUES %L
           ON CONFLICT (player_id, rank, training_level) DO UPDATE SET
-            name = EXCLUDED.name, ovr = EXCLUDED.ovr, event = EXCLUDED.event, traits_name = EXCLUDED.traits_name, traits = EXCLUDED.traits, raw_trait_ids = EXCLUDED.raw_trait_ids, league = EXCLUDED.league, team = EXCLUDED.team, nation_region = EXCLUDED.nation_region
+            name = EXCLUDED.name, ovr = EXCLUDED.ovr, event = EXCLUDED.event, traits_name = EXCLUDED.traits_name, traits = EXCLUDED.traits, raw_trait_ids = EXCLUDED.raw_trait_ids, league = EXCLUDED.league, team = EXCLUDED.team, nation_region = EXCLUDED.nation_region, player_image = EXCLUDED.player_image, card_background = EXCLUDED.card_background, nation_flag = EXCLUDED.nation_flag, club_flag = EXCLUDED.club_flag, league_image = EXCLUDED.league_image
         `, statsValues);
         try {
             await client.query(statsQuery);

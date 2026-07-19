@@ -1,32 +1,37 @@
-blank@zenith-production:~$ cat download_images.py
-#!/usr/bin/env python3
-"""
-Zenith Image Migration Script - Production Grade with Anti-Block Headers
-Downloads all images from renderz.app to local VPS storage
-"""
-
 import psycopg2
 import requests
 import os
 import sys
+import io
+
+# Fix Windows terminal encoding for emojis
+if sys.stdout.encoding.lower() != 'utf-8':
+    sys.stdout.reconfigure(encoding='utf-8')
+    
 import time
 import logging
 from urllib.parse import urlparse
 from datetime import datetime
 from pathlib import Path
 import random
+from dotenv import load_dotenv
+
+# Load credentials from local .env file
+load_dotenv()
 
 # Configuration
 DB_CONFIG = {
-    'host': 'localhost',
-    'database': 'zenith_data',
-    'user': 'zenith_bot',
-    'password': 'zenith6Z@'
+    'host': os.getenv('PG_HOST', 'localhost'),
+    'database': os.getenv('PG_DATABASE', 'zenith_data'),
+    'user': os.getenv('PG_USER', 'zenith_bot'),
+    'password': os.getenv('PG_PASSWORD', 'zenith6Z@'),
+    'port': os.getenv('PG_PORT', '5432')
 }
 
-IMAGE_DIR = '/var/www/images.zenithfcm.com'
+# Changed to a local directory for Windows
+IMAGE_DIR = './downloaded_images'
 CDN_BASE  = 'https://images.zenithfcm.com'
-LOG_DIR = os.path.expanduser('~/image_migration_logs')
+LOG_DIR = './image_migration_logs'
 DRY_RUN = '--dry-run' in sys.argv or '-d' in sys.argv
 
 # Setup logging
@@ -38,7 +43,7 @@ logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s [%(levelname)s] %(message)s',
     handlers=[
-        logging.FileHandler(log_file),
+        logging.FileHandler(log_file, encoding='utf-8'),
         logging.StreamHandler(sys.stdout)
     ]
 )
@@ -58,7 +63,7 @@ def get_headers():
         'Accept-Language': 'en-US,en;q=0.9',
         'Accept-Encoding': 'gzip, deflate, br',
         'Connection': 'keep-alive',
-        'Referer': 'https://www.ea.com/games/ea-sports-fc/fc-mobile',
+        'Referer': 'https://renderz.app/',  # Fixed Anti-Hotlink Referer
         'Sec-Fetch-Dest': 'image',
         'Sec-Fetch-Mode': 'no-cors',
         'Sec-Fetch-Site': 'cross-site',
@@ -77,7 +82,11 @@ def extract_image_urls_from_db():
     cur.execute("""
         SELECT player_image, card_background, nation_flag, club_flag, league_image
         FROM player_stats
-        WHERE player_image IS NOT NULL
+        WHERE player_image LIKE '%renderz.app%'
+           OR card_background LIKE '%renderz.app%'
+           OR nation_flag LIKE '%renderz.app%'
+           OR club_flag LIKE '%renderz.app%'
+           OR league_image LIKE '%renderz.app%'
     """)
     for row in cur.fetchall():
         for url in row:
@@ -87,7 +96,12 @@ def extract_image_urls_from_db():
     logger.info(f"  Found {len(image_urls)} unique URLs from single columns")
 
     logger.info("Extracting from player_stats (comma-separated: skills, traits)...")
-    cur.execute("SELECT skills, traits FROM player_stats WHERE skills IS NOT NULL OR traits IS NOT NULL")
+    cur.execute("""
+        SELECT skills, traits 
+        FROM player_stats 
+        WHERE skills LIKE '%renderz.app%' 
+           OR traits LIKE '%renderz.app%'
+    """)
     before_count = len(image_urls)
     for row in cur.fetchall():
         for field in row:
@@ -99,7 +113,7 @@ def extract_image_urls_from_db():
     logger.info(f"  Found {len(image_urls) - before_count} additional URLs from comma-separated columns")
 
     logger.info("Extracting from skills_catalog...")
-    cur.execute("SELECT skill_image FROM skills_catalog WHERE skill_image IS NOT NULL")
+    cur.execute("SELECT skill_image FROM skills_catalog WHERE skill_image LIKE '%renderz.app%'")
     before_count = len(image_urls)
     for row in cur.fetchall():
         if row[0] and 'renderz.app' in row[0]:
@@ -179,16 +193,13 @@ def update_database_urls(dry_run=False):
 
     # Each (table, column, is_comma_separated)
     updates = [
-        # Single URL columns — strip domain + ?verify token, keep filename + .png
         ("player_stats",  "player_image",    False),
         ("player_stats",  "card_background", False),
         ("player_stats",  "nation_flag",     False),
         ("player_stats",  "club_flag",       False),
         ("player_stats",  "league_image",    False),
-        # Comma-separated columns — regex replace each URL in the list
         ("player_stats",  "skills",          True),
         ("player_stats",  "traits",          True),
-        # skills_catalog
         ("skills_catalog","skill_image",     False),
     ]
 
@@ -199,7 +210,6 @@ def update_database_urls(dry_run=False):
 
     for (table, col, is_csv) in updates:
         if is_csv:
-            # Replace each renderz.app URL inside comma-separated string
             sql = f"""
                 UPDATE {table}
                 SET {col} = regexp_replace(
@@ -211,7 +221,6 @@ def update_database_urls(dry_run=False):
                 WHERE {col} LIKE '%renderz.app%'
             """
         else:
-            # Strip domain + ?verify token → CDN base + filename + .png
             sql = f"""
                 UPDATE {table}
                 SET {col} = '{CDN_BASE}/'
@@ -221,7 +230,6 @@ def update_database_urls(dry_run=False):
             """
 
         if dry_run:
-            # Just count how many rows would be affected
             count_sql = f"SELECT COUNT(*) FROM {table} WHERE {col} LIKE '%renderz.app%'"
             cur.execute(count_sql)
             count = cur.fetchone()[0]
@@ -400,10 +408,8 @@ if __name__ == "__main__":
 Zenith Image Migration Script
 
 Usage:
-  python3 download_images.py           # Full download + DB update
-  python3 download_images.py --dry-run # Test mode (no downloads, no DB changes)
-
-Only processes URLs containing 'renderz.app' — skips zenithfcm.com images.
+  python download_images.py           # Full download + DB update
+  python download_images.py --dry-run # Test mode (no downloads, no DB changes)
         """)
         sys.exit(0)
 
@@ -415,4 +421,3 @@ Only processes URLs containing 'renderz.app' — skips zenithfcm.com images.
     except Exception as e:
         logger.error(f"\n\n✗ Fatal error: {e}", exc_info=True)
         sys.exit(1)
-blank@zenith-production:~$

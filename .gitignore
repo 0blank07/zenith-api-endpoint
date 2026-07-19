@@ -22,3 +22,9 @@ error.log
 # OS
 .DS_Store
 Thumbs.db
+
+# etc
+downloaded_images/
+test.js
+eusebio_raw.json
+latest_sync_rollback.json
