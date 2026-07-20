@@ -186,65 +186,170 @@ def download_image(url, save_dir, dry_run=False, retry_count=0):
 # ─────────────────────────────────────────────────────────────────────────────
 # Phase 4 — Bulk SQL URL Update (fast, seconds not minutes)
 # ─────────────────────────────────────────────────────────────────────────────
+import re
+
+def slugify(text):
+    if not text: return 'unknown'
+    text = str(text).lower()
+    text = re.sub(r'[^\w\s-]', '', text)
+    text = re.sub(r'[\s_-]+', '-', text)
+    return text.strip('-')
+
+def extract_filename(url):
+    if not url or not isinstance(url, str): return None
+    parts = url.split('/')
+    last_part = parts[-1]
+    if not last_part: return None
+    return last_part.split('?')[0]
+
 def update_database_urls(dry_run=False):
-    logger.info("Connecting to database for URL update...")
+    logger.info("Connecting to database for URL update & Slugification...")
     conn = psycopg2.connect(**DB_CONFIG)
     cur = conn.cursor()
 
-    # Each (table, column, is_comma_separated)
-    updates = [
-        ("player_stats",  "player_image",    False),
-        ("player_stats",  "card_background", False),
-        ("player_stats",  "nation_flag",     False),
-        ("player_stats",  "club_flag",       False),
-        ("player_stats",  "league_image",    False),
-        ("player_stats",  "skills",          True),
-        ("player_stats",  "traits",          True),
-        ("skills_catalog","skill_image",     False),
-    ]
+    logger.info("Fetching player stats to build rename map...")
+    cur.execute("""
+        SELECT 
+            player_id, name, ovr, player_image, 
+            card_background, event,
+            nation_flag, nation_region,
+            club_flag, team,
+            league_image, league,
+            traits, traits_name
+        FROM player_stats
+    """)
+    rows = cur.fetchall()
+
+    rename_map = {}
+
+    def add_mapping(url, prefix, raw_name):
+        f = extract_filename(url)
+        if f and f.endswith('.png') and raw_name:
+            clean_name = slugify(raw_name)
+            rename_map[f] = f"{prefix}-{clean_name}.png"
+
+    for r in rows:
+        player_id, name, ovr, player_image, card_background, event, nation_flag, nation_region, club_flag, team, league_image, league, traits, traits_name = r
+        
+        # Player Image
+        p_file = extract_filename(player_image)
+        if p_file and p_file.endswith('.png'):
+            rename_map[p_file] = f"{slugify(name)}-{ovr}-{player_id}-image.png"
+
+        # Shared Assets
+        add_mapping(card_background, 'background', event)
+        add_mapping(nation_flag, 'nation', nation_region)
+        add_mapping(club_flag, 'club', team)
+        add_mapping(league_image, 'league', league)
+
+        if traits and traits_name:
+            t_urls = traits.split(',')
+            t_names = traits_name.split(',')
+            for i in range(len(t_urls)):
+                if i < len(t_names):
+                    add_mapping(t_urls[i], 'trait', t_names[i])
+
+    # Fetch skills catalog
+    logger.info("Fetching skills catalog...")
+    cur.execute("SELECT skill_name, skill_image FROM skills_catalog")
+    for r in cur.fetchall():
+        s_name, s_image = r
+        f = extract_filename(s_image)
+        if f and f.endswith('.png') and s_name:
+            rename_map[f] = f"skill-{slugify(s_name)}.png"
+
+    logger.info(f"Built mapping for {len(rename_map)} total files. Renaming local files...")
+    
+    if not dry_run:
+        import glob
+        local_files = glob.glob(os.path.join(IMAGE_DIR, '*.png'))
+        rename_count = 0
+        for filepath in local_files:
+            old_f = os.path.basename(filepath)
+            if old_f in rename_map and old_f != rename_map[old_f]:
+                new_f = rename_map[old_f]
+                new_filepath = os.path.join(IMAGE_DIR, new_f)
+                try:
+                    os.rename(filepath, new_filepath)
+                    rename_count += 1
+                except Exception as e:
+                    logger.error(f"Failed to rename {old_f} to {new_f}: {e}")
+        logger.info(f"Successfully renamed {rename_count} files locally in {IMAGE_DIR}")
 
     if not dry_run:
         cur.execute("BEGIN")
 
-    total_updated = 0
-
-    for (table, col, is_csv) in updates:
-        if is_csv:
-            sql = f"""
-                UPDATE {table}
-                SET {col} = regexp_replace(
-                    {col},
-                    'https://[^/]+/([^?,]+)\\?[^,]*',
-                    '{CDN_BASE}/\\1.png',
-                    'g'
-                )
-                WHERE {col} LIKE '%renderz.app%'
-            """
-        else:
-            sql = f"""
-                UPDATE {table}
-                SET {col} = '{CDN_BASE}/'
-                    || split_part(split_part({col}, '/', 4), '?', 1)
-                    || '.png'
-                WHERE {col} LIKE '%renderz.app%'
-            """
-
-        if dry_run:
-            count_sql = f"SELECT COUNT(*) FROM {table} WHERE {col} LIKE '%renderz.app%'"
-            cur.execute(count_sql)
-            count = cur.fetchone()[0]
-            logger.info(f"  ~ Would update {count} rows in {table}.{col}")
-            total_updated += count
-        else:
-            cur.execute(sql)
-            logger.info(f"  ✓ Updated {cur.rowcount} rows in {table}.{col}")
-            total_updated += cur.rowcount
-
+    logger.info("Updating database URLs with new clean names via Temp Table...")
+    
     if not dry_run:
+        cur.execute("""
+            CREATE TEMP TABLE temp_url_map (
+                old_url TEXT PRIMARY KEY,
+                new_url TEXT NOT NULL
+            )
+        """)
+        
+        map_values = []
+        for old_f, new_f in rename_map.items():
+            if old_f != new_f:
+                # We map BOTH the renderz.app URL pattern AND the old zenithfcm.com URL pattern 
+                # to the NEW zenithfcm.com slug URL, so the join matches either safely.
+                old_zenith_url = f"{CDN_BASE}/{old_f}"
+                new_zenith_url = f"{CDN_BASE}/{new_f}"
+                map_values.append((old_zenith_url, new_zenith_url))
+
+        # Because the database might have old renderz urls, we also use REPLACE later for traits.
+        import psycopg2.extras as pg_extras
+        pg_extras.execute_values(
+            cur,
+            "INSERT INTO temp_url_map (old_url, new_url) VALUES %s",
+            map_values
+        )
+
+        single_cols = ['player_image', 'card_background', 'nation_flag', 'club_flag', 'league_image']
+        for col in single_cols:
+            cur.execute(f"""
+                UPDATE player_stats 
+                SET {col} = m.new_url
+                FROM temp_url_map m
+                WHERE player_stats.{col} LIKE '%' || split_part(m.old_url, '/', 4) || '%'
+            """)
+
+        cur.execute("""
+            UPDATE skills_catalog 
+            SET skill_image = m.new_url
+            FROM temp_url_map m
+            WHERE skills_catalog.skill_image LIKE '%' || split_part(m.old_url, '/', 4) || '%'
+        """)
+
+        # For CSV columns, we do it safely using row-by-row mapping
+        logger.info("Updating CSV columns...")
+        cur.execute("SELECT player_id, skills, traits FROM player_stats WHERE skills IS NOT NULL OR traits IS NOT NULL")
+        rows = cur.fetchall()
+        for r in rows:
+            p_id, skills, traits = r
+            updated = False
+            new_s, new_t = skills, traits
+            for old_f, new_f in rename_map.items():
+                if old_f == new_f: continue
+                # replace hash with slug
+                old_part = split_part_custom = old_f
+                new_url = f"{CDN_BASE}/{new_f}"
+                
+                if new_s and old_part in new_s:
+                    new_s = re.sub(r'https://[^,]+' + old_part + r'[^,]*', new_url, new_s)
+                    updated = True
+                if new_t and old_part in new_t:
+                    new_t = re.sub(r'https://[^,]+' + old_part + r'[^,]*', new_url, new_t)
+                    updated = True
+            
+            if updated:
+                cur.execute("UPDATE player_stats SET skills = %s, traits = %s WHERE player_id = %s", (new_s, new_t, p_id))
+
         conn.commit()
-        logger.info(f"✓ DB update committed — {total_updated} total rows updated")
+        logger.info("✓ DB update committed — URLs are fully slugified!")
     else:
-        logger.info(f"~ Dry run: would update {total_updated} total rows")
+        logger.info(f"~ Dry run: would update all DB URLs to new slugs")
 
     cur.close()
     conn.close()
@@ -351,24 +456,21 @@ def main():
             time.sleep(random.uniform(1, 3))
 
     elapsed = time.time() - start_time
-
-    logger.info("\n" + "="*70)
+    # Prevent division by zero if it runs instantly
+    safe_elapsed = elapsed if elapsed > 0 else 0.1
+    
+    logger.info("======================================================================")
     logger.info("[PHASE 3/4] DOWNLOAD SUMMARY")
-    logger.info("="*70)
-
-    if DRY_RUN:
-        logger.info(f"✓ Dry run completed: {stats['dry_run']} URLs would be downloaded")
-    else:
-        logger.info(f"✓ Downloaded:     {stats['downloaded']}")
-        logger.info(f"○ Already exists: {stats['skipped']}")
-        logger.info(f"⏱ Timeout:        {stats['timeout']}")
-        logger.info(f"⏱ Rate limited:   {stats['ratelimit']}")
-        logger.info(f"✗ Failed:         {stats['failed']}")
-        logger.info(f"━ Total:          {len(urls)}")
-        logger.info(f"📦 Total size:    {format_size(stats['total_bytes'])}")
-
-    logger.info(f"⏱ Time taken:    {elapsed/60:.1f} minutes ({elapsed:.0f}s)")
-    logger.info(f"📊 Rate:          {len(urls)/elapsed:.1f} images/second")
+    logger.info("======================================================================")
+    logger.info(f" ✓ Downloaded:     {stats['downloaded']}")
+    logger.info(f" ⏭ Already exists: {stats['skipped']}")
+    logger.info(f" ⌛ Timeout:        {stats['timeout']}")
+    logger.info(f" 🛑 Rate limited:   {stats['ratelimit']}")
+    logger.info(f" ❌ Failed:         {stats['failed']}")
+    logger.info(f" 📊 Total:          {len(urls)}")
+    logger.info(f" 💾 Total size:     {format_size(stats['total_bytes'])}")
+    logger.info(f" ⏱ Time taken:     {elapsed/60:.1f} minutes ({elapsed:.0f}s)")
+    logger.info(f" ⚡ Rate:           {len(urls)/safe_elapsed:.1f} images/second")
 
     logger.info("\n" + "="*70)
     logger.info("[PHASE 4/4] UPDATING DATABASE URLs")
