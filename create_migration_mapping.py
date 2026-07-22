@@ -77,7 +77,7 @@ def main():
         FROM player_stats
     """)
     
-    seen_base_slugs = set()
+    seen_base_slugs = {}
     
     for row in cur.fetchall():
         player_id, name, ovr, p_img, bg_img, n_img, n_reg, c_img, team, l_img, league, traits, traits_name = row
@@ -87,8 +87,10 @@ def main():
         
         # Ensure unique slugs for players with exactly the same name and OVR (different cards)
         if base_slug in seen_base_slugs:
-            base_slug = f"{base_slug}-{player_id}"
-        seen_base_slugs.add(base_slug)
+            seen_base_slugs[base_slug] += 1
+            base_slug = f"{base_slug}-{seen_base_slugs[base_slug]}"
+        else:
+            seen_base_slugs[base_slug] = 1
         
         if is_target_url(p_img):
             mapping_url_to_new_name[p_img] = f"{base_slug}-player.png"
