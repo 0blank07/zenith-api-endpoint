@@ -120,6 +120,15 @@ def extract_image_urls_from_db():
             image_urls.add(row[0].strip())
     logger.info(f"  Found {len(image_urls) - before_count} additional URLs from skills_catalog")
 
+    logger.info("Extracting from playstyles_catalog...")
+    cur.execute("SELECT icon_level_1, icon_level_2 FROM playstyles_catalog")
+    before_count = len(image_urls)
+    for row in cur.fetchall():
+        for url in row:
+            if url and 'renderz.app' in url:
+                image_urls.add(url.strip())
+    logger.info(f"  Found {len(image_urls) - before_count} additional URLs from playstyles_catalog")
+
     cur.close()
     conn.close()
 
@@ -201,6 +210,8 @@ def update_database_urls(dry_run=False):
         ("player_stats",  "skills",          True),
         ("player_stats",  "traits",          True),
         ("skills_catalog","skill_image",     False),
+        ("playstyles_catalog", "icon_level_1", False),
+        ("playstyles_catalog", "icon_level_2", False),
     ]
 
     if not dry_run:
