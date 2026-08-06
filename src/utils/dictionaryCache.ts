@@ -4,6 +4,9 @@ import 'dotenv/config';
 
 let traitsCache: Record<number, string> = {};
 let celebrationsCache: Record<number, string> = {};
+let nationsCache: Record<number, string> = {};
+let clubsCache: Record<number, string> = {};
+let leaguesCache: Record<number, string> = {};
 let isLoaded = false;
 
 const pool = new Pool({
@@ -28,6 +31,24 @@ export async function loadDictionaries() {
       celebrationsCache[row.id] = row.name;
     });
 
+    const nationsRes = await pool.query('SELECT id, name FROM nations_dictionary');
+    nationsCache = {};
+    nationsRes.rows.forEach(row => {
+      nationsCache[row.id] = row.name;
+    });
+
+    const clubsRes = await pool.query('SELECT id, name FROM clubs_dictionary');
+    clubsCache = {};
+    clubsRes.rows.forEach(row => {
+      clubsCache[row.id] = row.name;
+    });
+
+    const leaguesRes = await pool.query('SELECT id, name FROM leagues_dictionary');
+    leaguesCache = {};
+    leaguesRes.rows.forEach(row => {
+      leaguesCache[row.id] = row.name;
+    });
+
     isLoaded = true;
     logger.info(`Dictionaries loaded: ${Object.keys(traitsCache).length} traits, ${Object.keys(celebrationsCache).length} celebrations.`);
   } catch (error) {
@@ -44,6 +65,18 @@ export function getTraitNameFromCache(id: number): string | undefined {
 
 export function getCelebrationNameFromCache(id: number): string | undefined {
   return celebrationsCache[id];
+}
+
+export function getNationNameFromCache(id: number): string | undefined {
+  return nationsCache[id];
+}
+
+export function getClubNameFromCache(id: number): string | undefined {
+  return clubsCache[id];
+}
+
+export function getLeagueNameFromCache(id: number): string | undefined {
+  return leaguesCache[id];
 }
 
 export async function logMissingMetadata(assetId: number | undefined, type: string, unknownId: number) {

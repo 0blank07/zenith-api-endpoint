@@ -4,7 +4,7 @@ import cors from 'cors';
 import { Pool } from 'pg';
 import path from 'path';
 import logger from './utils/logger';
-import { healTraitInDatabase } from './scripts/syncTraitHealing';
+import { healTraitInDatabase, healNationInDatabase, healClubInDatabase, healLeagueInDatabase } from './scripts/syncTraitHealing';
 import { loadDictionaries } from './utils/dictionaryCache';
 
 const app = express();
@@ -92,12 +92,124 @@ app.post('/api/celebrations', async (req, res) => {
   }
 });
 
+app.get('/api/nations', async (req, res) => {
+  try {
+    const result = await pool.query('SELECT * FROM nations_dictionary ORDER BY id ASC');
+    res.json(result.rows);
+  } catch (error) {
+    logger.error('Error fetching nations:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+app.post('/api/nations', async (req, res) => {
+  const { id, name } = req.body;
+  if (id === undefined || !name) return res.status(400).json({ error: 'Missing id or name' });
+  
+  try {
+    await pool.query(
+      'INSERT INTO nations_dictionary (id, name) VALUES ($1, $2) ON CONFLICT (id) DO UPDATE SET name = EXCLUDED.name',
+      [id, name]
+    );
+    await loadDictionaries();
+    const healedCount = await healNationInDatabase(id);
+    res.json({ success: true, message: 'Nation updated', healedCount: healedCount ?? 0 });
+  } catch (error) {
+    logger.error('Error updating nation:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+app.get('/api/clubs', async (req, res) => {
+  try {
+    const result = await pool.query('SELECT * FROM clubs_dictionary ORDER BY id ASC');
+    res.json(result.rows);
+  } catch (error) {
+    logger.error('Error fetching clubs:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+app.post('/api/clubs', async (req, res) => {
+  const { id, name } = req.body;
+  if (id === undefined || !name) return res.status(400).json({ error: 'Missing id or name' });
+  
+  try {
+    await pool.query(
+      'INSERT INTO clubs_dictionary (id, name) VALUES ($1, $2) ON CONFLICT (id) DO UPDATE SET name = EXCLUDED.name',
+      [id, name]
+    );
+    await loadDictionaries();
+    const healedCount = await healClubInDatabase(id);
+    res.json({ success: true, message: 'Club updated', healedCount: healedCount ?? 0 });
+  } catch (error) {
+    logger.error('Error updating club:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+app.get('/api/leagues', async (req, res) => {
+  try {
+    const result = await pool.query('SELECT * FROM leagues_dictionary ORDER BY id ASC');
+    res.json(result.rows);
+  } catch (error) {
+    logger.error('Error fetching leagues:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+app.post('/api/leagues', async (req, res) => {
+  const { id, name } = req.body;
+  if (id === undefined || !name) return res.status(400).json({ error: 'Missing id or name' });
+  
+  try {
+    await pool.query(
+      'INSERT INTO leagues_dictionary (id, name) VALUES ($1, $2) ON CONFLICT (id) DO UPDATE SET name = EXCLUDED.name',
+      [id, name]
+    );
+    await loadDictionaries();
+    const healedCount = await healLeagueInDatabase(id);
+    res.json({ success: true, message: 'League updated', healedCount: healedCount ?? 0 });
+  } catch (error) {
+    logger.error('Error updating league:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
 app.get('/api/missing', async (req, res) => {
   try {
     const result = await pool.query('SELECT * FROM missing_metadata ORDER BY created_at DESC');
     res.json(result.rows);
   } catch (error) {
     logger.error('Error fetching missing metadata:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+app.delete('/api/missing/:id', async (req, res) => {
+  const { id } = req.params;
+  try {
+    await pool.query('DELETE FROM missing_metadata WHERE id = $1', [id]);
+    res.json({ success: true, message: 'Item marked as done.' });
+  } catch (error) {
+    logger.error('Error deleting missing metadata:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+app.post('/api/missing/rescan', async (req, res) => {
+  try {
+    const result = await pool.query(`
+      DELETE FROM missing_metadata WHERE
+      (type = 'nation' AND unknown_id IN (SELECT id FROM nations_dictionary)) OR
+      (type = 'club' AND unknown_id IN (SELECT id FROM clubs_dictionary)) OR
+      (type = 'league' AND unknown_id IN (SELECT id FROM leagues_dictionary)) OR
+      (type = 'trait' AND unknown_id IN (SELECT id FROM traits_dictionary)) OR
+      (type = 'celebration' AND unknown_id IN (SELECT id FROM celebrations_dictionary))
+    `);
+    res.json({ success: true, deletedCount: result.rowCount });
+  } catch (error) {
+    logger.error('Error scanning and deleting missing metadata:', error);
     res.status(500).json({ error: 'Internal Server Error' });
   }
 });

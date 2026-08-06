@@ -1,7 +1,7 @@
 import { Player, Trait, Skill } from '../types/player';
 import { RENDERZ_DICTIONARY } from './renderzDictionary';
 import { SKILL_TREE } from './skillTree';
-import { getTraitNameFromCache, getCelebrationNameFromCache, logMissingMetadata } from './dictionaryCache';
+import { getTraitNameFromCache, getCelebrationNameFromCache, getNationNameFromCache, getClubNameFromCache, getLeagueNameFromCache, logMissingMetadata } from './dictionaryCache';
 
 
 /**
@@ -92,9 +92,9 @@ export function cleanName(name: string, id?: number, type?: 'club' | 'league' | 
 
   // 3. Direct ID Lookup
   if (!isNaN(cid)) {
-    if (type === 'nation' && NATIONS[cid]) return NATIONS[cid];
-    if (type === 'league' && LEAGUES[cid]) return LEAGUES[cid];
-    if (type === 'club' && CLUBS[cid]) return CLUBS[cid];
+    if (type === 'nation' && (NATIONS[cid] || getNationNameFromCache(cid))) return NATIONS[cid] || getNationNameFromCache(cid)!;
+    if (type === 'league' && (LEAGUES[cid] || getLeagueNameFromCache(cid))) return LEAGUES[cid] || getLeagueNameFromCache(cid)!;
+    if (type === 'club' && (CLUBS[cid] || getClubNameFromCache(cid))) return CLUBS[cid] || getClubNameFromCache(cid)!;
     if (type === 'skill_move' && SKILL_MOVE_NAMES[cid]) return SKILL_MOVE_NAMES[cid];
     if (type === 'celebration' && getCelebrationNameFromCache(cid)) return getCelebrationNameFromCache(cid)!;
   }
@@ -118,9 +118,9 @@ export function cleanName(name: string, id?: number, type?: 'club' | 'league' | 
   // 7. Strict Number Blocker
   if (!isNaN(parseInt(cleaned)) && cleaned.length > 0 && !cleaned.includes(' ')) {
       const lastId = parseInt(cleaned);
-      if (type === 'club' && CLUBS[lastId]) return CLUBS[lastId];
-      if (type === 'league' && LEAGUES[lastId]) return LEAGUES[lastId];
-      if (type === 'nation' && NATIONS[lastId]) return NATIONS[lastId];
+      if (type === 'club' && (CLUBS[lastId] || getClubNameFromCache(lastId))) return CLUBS[lastId] || getClubNameFromCache(lastId)!;
+      if (type === 'league' && (LEAGUES[lastId] || getLeagueNameFromCache(lastId))) return LEAGUES[lastId] || getLeagueNameFromCache(lastId)!;
+      if (type === 'nation' && (NATIONS[lastId] || getNationNameFromCache(lastId))) return NATIONS[lastId] || getNationNameFromCache(lastId)!;
       if (type === 'celebration' && assetId) {
           missingCelebrationsToHeal.push({ assetId, celebrationId: lastId });
       }

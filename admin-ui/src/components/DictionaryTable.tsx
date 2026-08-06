@@ -7,7 +7,7 @@ interface DictionaryItem {
   name: string;
 }
 
-export default function DictionaryTable({ type }: { type: 'traits' | 'celebrations' }) {
+export default function DictionaryTable({ type }: { type: 'traits' | 'celebrations' | 'nations' | 'clubs' | 'leagues' }) {
   const [items, setItems] = useState<DictionaryItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -44,7 +44,7 @@ export default function DictionaryTable({ type }: { type: 'traits' | 'celebratio
         name: newNameVal,
         oldName: oldNameVal
       });
-      setToast(`${type === 'traits' ? 'Trait' : 'Celebration'} updated! Healed ${res.data.healedCount || 0} cards.`);
+      setToast(`${type.charAt(0).toUpperCase() + type.slice(1)} updated! Healed ${res.data.healedCount || 0} cards.`);
       setTimeout(() => setToast(''), 4000);
       setEditId(null);
       fetchItems();

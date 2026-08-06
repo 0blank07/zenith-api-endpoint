@@ -326,15 +326,16 @@ export const RENDERZ_DICTIONARY: Record<string, string> = {
   "WEBSQL": "Se puede ganar en el pase estelar de The World",
   "LOCALSTORAGE": "LEGENDARY III",
   "DDTHH": "console",
-  "Z_BLOCK": "AdsCoreLoader",
-  "Z_DEFLATED": "<path fill=",
+  "Z_BLOCK": "_blank",
+  "Z_DEFLATED": "ADS",
   "LOGOTYP": "Club Atlético Tigre",
-  "_THRESHOLD": "AdsCoreLoader",
+  "_THRESHOLD": "_blank",
   "NAME_SKILL_34041": "Traditional Winger",
   "NAME_SKILL_30031": "Stopper",
   "ZGVTR": "The uploaded file exceeds the maximum allowed size of 250MB.",
-  "Z_TREES": "https://assads.adsboosters.xyz/ArrowDown.png",
+  "Z_TREES": "https://assads.adsboosters.xyz/Ads.png",
   "NAME_SKILL_34021": "NAME_SKILL_34020",
   "NAME_SKILL_37041": "NAME_SKILL_37040",
-  "TeamName_112224": "https://assads.adsboosters.xyz/HideMinimal.png"
+  "TeamName_112224": "https://assads.adsboosters.xyz/HideMinimal.png",
+  "_PRESSHOLDMARGIN": "staging-vads.adsboosters.xyz"
 };
