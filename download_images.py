@@ -3,6 +3,8 @@ import requests
 import os
 import sys
 import io
+import json
+from psycopg2.extras import execute_values
 
 # Fix Windows terminal encoding for emojis
 if sys.stdout.encoding.lower() != 'utf-8':
@@ -135,7 +137,11 @@ def extract_image_urls_from_db():
     logger.info(f"Total unique renderz.app image URLs: {len(image_urls)}")
     return list(image_urls)
 
+URL_MAPPING = {}
+
 def get_filename_from_url(url):
+    if url in URL_MAPPING:
+        return URL_MAPPING[url]
     parsed = urlparse(url)
     filename = os.path.basename(parsed.path)
     if '.' not in filename:
@@ -196,67 +202,88 @@ def download_image(url, save_dir, dry_run=False, retry_count=0):
 # Phase 4 — Bulk SQL URL Update (fast, seconds not minutes)
 # ─────────────────────────────────────────────────────────────────────────────
 def update_database_urls(dry_run=False):
-    logger.info("Connecting to database for URL update...")
+    logger.info("Connecting to database for URL update using clean names...")
     conn = psycopg2.connect(**DB_CONFIG)
     cur = conn.cursor()
 
-    # Each (table, column, is_comma_separated)
-    updates = [
-        ("player_stats",  "player_image",    False),
-        ("player_stats",  "card_background", False),
-        ("player_stats",  "nation_flag",     False),
-        ("player_stats",  "club_flag",       False),
-        ("player_stats",  "league_image",    False),
-        ("player_stats",  "skills",          True),
-        ("player_stats",  "traits",          True),
-        ("skills_catalog","skill_image",     False),
-        ("playstyles_catalog", "icon_level_1", False),
-        ("playstyles_catalog", "icon_level_2", False),
+    if not URL_MAPPING:
+        logger.warning("URL_MAPPING is empty. Run Phase 1 first.")
+        return
+
+    # Update simple columns using a temp table
+    values = [(old_url, f"{CDN_BASE}/{new_name}") for old_url, new_name in URL_MAPPING.items()]
+    
+    if dry_run:
+        logger.info(f"  ~ Dry run: would bulk update {len(values)} distinct URLs in non-CSV columns.")
+    else:
+        cur.execute("CREATE TEMP TABLE url_map (old_url TEXT PRIMARY KEY, new_url TEXT)")
+        execute_values(cur, "INSERT INTO url_map (old_url, new_url) VALUES %s", values)
+        
+        tables_cols = [
+            ("player_stats", "player_image"),
+            ("player_stats", "card_background"),
+            ("player_stats", "nation_flag"),
+            ("player_stats", "club_flag"),
+            ("player_stats", "league_image"),
+            ("skills_catalog", "skill_image"),
+            ("playstyles_catalog", "icon_level_1"),
+            ("playstyles_catalog", "icon_level_2"),
+        ]
+        
+        total_simple_updates = 0
+        for table, col in tables_cols:
+            try:
+                cur.execute(f"UPDATE {table} t SET {col} = m.new_url FROM url_map m WHERE t.{col} = m.old_url AND t.{col} LIKE '%%renderz.app%%'")
+                total_simple_updates += cur.rowcount
+            except Exception as e:
+                conn.rollback()
+                logger.error(f"Error updating {table}.{col}: {e}")
+                
+        logger.info(f"  ✓ Updated {total_simple_updates} simple column rows.")
+        if not dry_run:
+            conn.commit()
+
+    # Update CSV columns in Python (skills, traits)
+    logger.info("Updating CSV columns (skills, traits)...")
+    csv_updates = [
+        ("player_stats", "skills", "player_id"),
+        ("player_stats", "traits", "player_id")
     ]
-
-    if not dry_run:
-        cur.execute("BEGIN")
-
-    total_updated = 0
-
-    for (table, col, is_csv) in updates:
-        if is_csv:
-            sql = f"""
-                UPDATE {table}
-                SET {col} = regexp_replace(
-                    {col},
-                    'https://[^/]+/([^?,]+)\\?[^,]*',
-                    '{CDN_BASE}/\\1.png',
-                    'g'
-                )
-                WHERE {col} LIKE '%renderz.app%'
-            """
-        else:
-            sql = f"""
-                UPDATE {table}
-                SET {col} = '{CDN_BASE}/'
-                    || split_part(split_part({col}, '/', 4), '?', 1)
-                    || '.png'
-                WHERE {col} LIKE '%renderz.app%'
-            """
-
-        if dry_run:
-            count_sql = f"SELECT COUNT(*) FROM {table} WHERE {col} LIKE '%renderz.app%'"
-            cur.execute(count_sql)
-            count = cur.fetchone()[0]
-            logger.info(f"  ~ Would update {count} rows in {table}.{col}")
-            total_updated += count
-        else:
-            cur.execute(sql)
-            logger.info(f"  ✓ Updated {cur.rowcount} rows in {table}.{col}")
-            total_updated += cur.rowcount
+    
+    for table, col, pk in csv_updates:
+        try:
+            cur.execute(f"SELECT {pk}, {col} FROM {table} WHERE {col} LIKE '%%renderz.app%%'")
+            rows = cur.fetchall()
+            update_data = []
+            for row in rows:
+                p_id, csv_val = row
+                if not csv_val: continue
+                
+                parts = [p.strip() for p in csv_val.split(',')]
+                new_parts = []
+                changed = False
+                for p in parts:
+                    if p in URL_MAPPING:
+                        new_parts.append(f"{CDN_BASE}/{URL_MAPPING[p]}")
+                        changed = True
+                    else:
+                        new_parts.append(p)
+                
+                if changed:
+                    update_data.append((",".join(new_parts), p_id))
+            
+            if dry_run:
+                logger.info(f"  ~ Dry run: would update {len(update_data)} rows in {table}.{col}")
+            elif update_data:
+                cur.executemany(f"UPDATE {table} SET {col} = %s WHERE {pk} = %s", update_data)
+                logger.info(f"  ✓ Updated {len(update_data)} rows in {table}.{col}")
+                
+        except Exception as e:
+            conn.rollback()
+            logger.error(f"Error updating {table}.{col}: {e}")
 
     if not dry_run:
         conn.commit()
-        logger.info(f"✓ DB update committed — {total_updated} total rows updated")
-    else:
-        logger.info(f"~ Dry run: would update {total_updated} total rows")
-
     cur.close()
     conn.close()
 # ─────────────────────────────────────────────────────────────────────────────
@@ -283,6 +310,18 @@ def main():
     if not DRY_RUN:
         os.makedirs(IMAGE_DIR, exist_ok=True)
         logger.info(f"Image directory: {IMAGE_DIR}")
+
+    logger.info("\n[PHASE 0/4] Generating Clean URL Mappings...")
+    try:
+        import create_migration_mapping
+        create_migration_mapping.main()
+        with open('migration_url_mapping.json', 'r') as f:
+            global URL_MAPPING
+            URL_MAPPING = json.load(f)
+        logger.info(f"✓ Loaded {len(URL_MAPPING)} clean name mappings")
+    except Exception as e:
+        logger.error(f"Failed to generate mappings: {e}")
+        return 1
 
     logger.info("\n[PHASE 1/4] Extracting image URLs from database...")
     try:
@@ -379,7 +418,10 @@ def main():
         logger.info(f"📦 Total size:    {format_size(stats['total_bytes'])}")
 
     logger.info(f"⏱ Time taken:    {elapsed/60:.1f} minutes ({elapsed:.0f}s)")
-    logger.info(f"📊 Rate:          {len(urls)/elapsed:.1f} images/second")
+    if elapsed > 0:
+        logger.info(f"📊 Rate:          {len(urls)/elapsed:.1f} images/second")
+    else:
+        logger.info(f"📊 Rate:          0.0 images/second")
 
     logger.info("\n" + "="*70)
     logger.info("[PHASE 4/4] UPDATING DATABASE URLs")

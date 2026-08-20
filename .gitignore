@@ -28,3 +28,14 @@ downloaded_images/
 test.js
 eusebio_raw.json
 latest_sync_rollback.json
+
+# Runtime JSON artifacts
+migration_url_mapping.json
+migration_file_mapping.json
+
+# Python artifacts and one-off debug scripts
+__pycache__/
+fix_broken_urls.py
+undo_fix.py
+unlock_db.py
+test_db.py

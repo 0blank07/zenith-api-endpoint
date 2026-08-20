@@ -75,6 +75,9 @@ def main():
                nation_flag, nation_region, club_flag, team, league_image, league,
                traits, traits_name
         FROM player_stats
+        WHERE player_image LIKE '%%renderz.app%%' OR card_background LIKE '%%renderz.app%%'
+           OR nation_flag LIKE '%%renderz.app%%' OR club_flag LIKE '%%renderz.app%%'
+           OR league_image LIKE '%%renderz.app%%'
     """)
     
     seen_base_slugs = {}
